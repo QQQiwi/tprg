@@ -6,9 +6,11 @@
 #include <functional>
 #include <map>
 
-std::string help_message = "this is help message!";
+std::string help_message =
+"this is help message!";
 
-int linear_congruent_method(int n, std::vector<int> params, std::string f="rnd_lc.dat")
+
+int linear_congruent_method(int n, std::vector<int> params, std::string f)
 {
     int m = params[0];
     int a = params[1];
@@ -28,53 +30,67 @@ int linear_congruent_method(int n, std::vector<int> params, std::string f="rnd_l
 
 // using MapType = std::map<std::string, std::function<void()>>;
 
+std::vector<int> split(std::string str, std::string token)
+{
+    std::vector<int>result;
+    while(str.size()){
+        int index = str.find(token);
+        if(index != std::string::npos){
+            result.push_back(std::stoi(str.substr(0,index)));
+            str = str.substr(index + token.size());
+            if (str.size() == 0) result.push_back(std::stoi(str));
+        }else{
+            result.push_back(std::stoi(str));
+            str = "";
+        }
+    }
+    return result;
+}
+
 
 void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f, bool &h, int arg_amount, char** args)
 {
     std::vector<std::pair<std::string, int>> default_args = {{"/g:", 0}, {"/i:", 1}, {"/n:", 2}, {"/f:", 3}, {"/h", 4}};
     int default_args_amount = 5;
-    std::string g;
-    init = {106, 1283, 6075, 30};
-    n = 1000000;
     f = "rnd.dat";
-    // bool h;
-
-    for (int i = 1; i < arg_amount; ++i)
+    try
     {
-        std::string cur_arg = args[i];
-        for (int j = 0; j < default_args_amount; j++)
+        for (int i = 1; i < arg_amount; ++i)
         {
-            if (cur_arg.find(default_args[j].first) != std::string::npos)
+            std::string cur_arg = args[i];
+            for (int j = 0; j < default_args_amount; j++)
             {
-                switch (default_args[j].second)
+                if (cur_arg.find(default_args[j].first) != std::string::npos)
                 {
-                case 0:
-                    cur_arg.erase(0, 3);
-                    // std::cout << "g: " << cur_arg << std::endl;
-                    g = cur_arg;
-                    break;
-                case 1:
-                    cur_arg.erase(0, 3);
-                    std::cout << "i: " << cur_arg << std::endl;
-                    break;
-                case 2:
-                    cur_arg.erase(0, 3);
-                    std::cout << "n: " << cur_arg << std::endl;
-                    break;
-                case 3:
-                    cur_arg.erase(0, 3);
-                    std::cout << "f: " << cur_arg << std::endl;
-                    break;
-                case 4:
-                    std::cout << help_message << std::endl;
-                    break;               
-                default:
-                    std::cout << help_message << std::endl;
-                    break;
+                    switch (default_args[j].second)
+                    {
+                    case 0:
+                        cur_arg.erase(0, 3);
+                        g = cur_arg;
+                        break;
+                    case 1:
+                        cur_arg.erase(0, 3);
+                        init = split(cur_arg, ",");
+                        break;
+                    case 2:
+                        cur_arg.erase(0, 3);
+                        n = std::stoi(cur_arg);
+                        break;
+                    case 3:
+                        cur_arg.erase(0, 3);
+                        f = cur_arg;
+                        break;
+                    case 4:
+                        std::cout << help_message << std::endl;
+                        break;
+                    }
                 }
             }
-            
         }
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << help_message << std::endl;
     }
 }
 
@@ -92,5 +108,12 @@ int main(int argc, char** argv)
 
     parse_args(g, init, n, f, h, argc, argv);
 
-    // linear_congruent_method(n, init);
+    try
+    {
+        linear_congruent_method(n, init, f);
+    }
+    catch(std::exception& e)
+    {
+        std::cout << help_message << '\n';
+    }
 }
