@@ -5,23 +5,32 @@
 #include <cstdio>
 #include <functional>
 #include <map>
+// #include <chrono>
+// #include <thread>
 
 std::string help_message =
 "Аргументы должны вводиться следующим образом:"
-"\n /g:название_генератора - указывает на метод генерации ПСЧ, принимает следующие значения: lc, add, 5p, lfsr, nfsr, mt, rc4, rsa, bbs"
-"\n /i:инициализирущий_вектор - записывать в формате {x,y,z}, где x, y и z - параметры генератора."
-"\n /n:количество_генерируемых_чисел - целое число, определяющее количество генерируемых чисел. По умолчанию имеет значение 10000."
-"\n /f:имя_файла - полное имя файла, в который будут записываться данные. По умолчанию имеет значение 'rnd.dat'."
-"\n /h - информация о параметрах командной строки. При указании параметра /g: будет также появляется дополнительная информация о параметрах генератора.";
+"\n /g:название_генератора - указывает на метод генерации ПСЧ, принимает "
+"следующие значения: lc, add, 5p, lfsr, nfsr, mt, rc4, rsa, bbs"
+"\n /i:инициализирущий_вектор - записывать в формате {x,y,z}, где x, y и z - "
+"параметры генератора."
+"\n /n:количество_генерируемых_чисел - целое число, определяющее количество "
+"генерируемых чисел. По умолчанию имеет значение 10000."
+"\n /f:имя_файла - полное имя файла, в который будут записываться данные. "
+"По умолчанию имеет значение 'rnd.dat'."
+"\n /h - информация о параметрах командной строки. При указании параметра /g: "
+"будет также появляется дополнительная информация о параметрах генератора.\n";
 
 std::string lc_help_message =
-"Для линейного конгруэнтного генератора необходимо ввести параметры следующим образом: '/i:m,a,c,last_x' - где:"
+"Для линейного конгруэнтного генератора необходимо ввести параметры следующим "
+"образом: '/i:m,a,c,last_x' - где:"
 "\n m - модуль,"
 "\n a - множитель,"
 "\n c - приращение (инкремент),"
-"\n last_x - начальное значение";
+"\n last_x - начальное значение\n";
 
-std::string other_gen_help_message = "Данный генератор ещё не готов!";
+std::string other_gen_help_message = "Данный генератор ещё не готов или ошибка "
+"в названии генератора!\n";
 
 
 void show_help_message(std::string g="", bool h=false)
@@ -41,6 +50,16 @@ void show_help_message(std::string g="", bool h=false)
 }
 
 
+void show_progress(int i, int n)
+{
+    if (i % (static_cast<int> (static_cast<float> (n) / 10) + 1) == 0)
+    {
+        std::cout << "\r" << "Генерация выполнена на " << (i * 100) / n 
+                  << "%" << std::flush;
+    }
+}
+
+
 int linear_congruent_method(int n, std::vector<int> params, std::string f)
 {
     int m = params[0];
@@ -50,14 +69,20 @@ int linear_congruent_method(int n, std::vector<int> params, std::string f)
 
     std::ofstream output_file;
     output_file.open(f);
+    std::cout << "Генерация выполнена на ";
     for (int i = 0; i < n; i++)
     {
         last_x = (a * last_x + c) % m;
         output_file << last_x << " ";
+        show_progress(i, n);
     }
+    std::cout << "\r" << "Генерация выполнена на " << 100 << "%" << std::flush 
+              << std::endl;
     output_file.close();
+    std::cout << "Результат работы генератора сохранен в " + f + "\n";
     return 0;
 }
+
 
 std::vector<int> split(std::string str, std::string token)
 {
@@ -81,9 +106,11 @@ std::vector<int> split(std::string str, std::string token)
 }
 
 
-void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f, bool &h, int arg_amount, char** args)
+void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f, 
+                bool &h, int arg_amount, char** args)
 {
-    std::vector<std::pair<std::string, int>> default_args = {{"/g:", 0}, {"/i:", 1}, {"/n:", 2}, {"/f:", 3}, {"/h", 4}};
+    std::vector<std::pair<std::string, int>> default_args = {{"/g:", 0},
+        {"/i:", 1}, {"/n:", 2}, {"/f:", 3}, {"/h", 4}};
     int default_args_amount = default_args.size();
     f = "rnd.dat";
     n = 10000;
@@ -127,6 +154,7 @@ void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f, 
         show_help_message(g, h);
     }
 }
+
 
 int main(int argc, char** argv)
 {
