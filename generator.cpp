@@ -8,34 +8,58 @@
 // #include <chrono>
 // #include <thread>
 
-
 std::string help_message =
-"¿„ÛÏÂÌÚ˚ ‰ÓÎÊÌ˚ ‚‚Ó‰ËÚ¸Òˇ ÒÎÂ‰Û˛˘ËÏ Ó·‡ÁÓÏ:"
-"\n /g:Ì‡Á‚‡ÌËÂ_„ÂÌÂ‡ÚÓ‡ - ÛÍ‡Á˚‚‡ÂÚ Ì‡ ÏÂÚÓ‰ „ÂÌÂ‡ˆËË œ—◊, ÔËÌËÏ‡ÂÚ "
-"ÒÎÂ‰Û˛˘ËÂ ÁÌ‡˜ÂÌËˇ: lc, add, 5p, lfsr, nfsr, mt, rc4, rsa, bbs"
-"\n /i:ËÌËˆË‡ÎËÁËÛ˘ËÈ_‚ÂÍÚÓ - Á‡ÔËÒ˚‚‡Ú¸ ‚ ÙÓÏ‡ÚÂ {x,y,z}, „‰Â x, y Ë z - "
-"Ô‡‡ÏÂÚ˚ „ÂÌÂ‡ÚÓ‡."
-"\n /n:ÍÓÎË˜ÂÒÚ‚Ó_„ÂÌÂËÛÂÏ˚ı_˜ËÒÂÎ - ˆÂÎÓÂ ˜ËÒÎÓ, ÓÔÂ‰ÂÎˇ˛˘ÂÂ ÍÓÎË˜ÂÒÚ‚Ó "
-"„ÂÌÂËÛÂÏ˚ı ˜ËÒÂÎ. œÓ ÛÏÓÎ˜‡ÌË˛ ËÏÂÂÚ ÁÌ‡˜ÂÌËÂ 10000."
-"\n /f:ËÏˇ_Ù‡ÈÎ‡ - ÔÓÎÌÓÂ ËÏˇ Ù‡ÈÎ‡, ‚ ÍÓÚÓ˚È ·Û‰ÛÚ Á‡ÔËÒ˚‚‡Ú¸Òˇ ‰‡ÌÌ˚Â. "
-"œÓ ÛÏÓÎ˜‡ÌË˛ ËÏÂÂÚ ÁÌ‡˜ÂÌËÂ 'rnd.dat'."
-"\n /h - ËÌÙÓÏ‡ˆËˇ Ó Ô‡‡ÏÂÚ‡ı ÍÓÏ‡Ì‰ÌÓÈ ÒÚÓÍË. œË ÛÍ‡Á‡ÌËË Ô‡‡ÏÂÚ‡ /g: "
-"·Û‰ÂÚ Ú‡ÍÊÂ ÔÓˇ‚ÎˇÂÚÒˇ ‰ÓÔÓÎÌËÚÂÎ¸Ì‡ˇ ËÌÙÓÏ‡ˆËˇ Ó Ô‡‡ÏÂÚ‡ı „ÂÌÂ‡ÚÓ‡.\n";
+"–ê—Ä–≥—É–º–µ–Ω—Ç—ã –¥–æ–ª–∂–Ω—ã –≤–≤–æ–¥–∏—Ç—å—Å—è —Å–ª–µ–¥—É—é—â–∏–º –æ–±—Ä–∞–∑–æ–º:"
+"\n /g:–Ω–∞–∑–≤–∞–Ω–∏–µ_–≥–µ–Ω–µ—Ä–∞—Ç–æ—Ä–∞ - —É–∫–∞–∑—ã–≤–∞–µ—Ç –Ω–∞ –º–µ—Ç–æ–¥ –≥–µ–Ω–µ—Ä–∞—Ü–∏–∏ –ü–°–ß, –ø—Ä–∏–Ω–∏–º–∞–µ—Ç "
+"—Å–ª–µ–¥—É—é—â–∏–µ –∑–Ω–∞—á–µ–Ω–∏—è: lc, add, 5p, lfsr, nfsr, mt, rc4, rsa, bbs"
+"\n /i:–∏–Ω–∏—Ü–∏–∞–ª–∏–∑–∏—Ä—É—â–∏–π_–≤–µ–∫—Ç–æ—Ä - –∑–∞–ø–∏—Å—ã–≤–∞—Ç—å –≤ —Ñ–æ—Ä–º–∞—Ç–µ {x,y,z}, –≥–¥–µ x, y –∏ z - "
+"–ø–∞—Ä–∞–º–µ—Ç—Ä—ã –≥–µ–Ω–µ—Ä–∞—Ç–æ—Ä–∞."
+"\n /n:–∫–æ–ª–∏—á–µ—Å—Ç–≤–æ_–≥–µ–Ω–µ—Ä–∏—Ä—É–µ–º—ã—Ö_—á–∏—Å–µ–ª - —Ü–µ–ª–æ–µ —á–∏—Å–ª–æ, –æ–ø—Ä–µ–¥–µ–ª—è—é—â–µ–µ –∫–æ–ª–∏—á–µ—Å—Ç–≤–æ "
+"–≥–µ–Ω–µ—Ä–∏—Ä—É–µ–º—ã—Ö —á–∏—Å–µ–ª. –ü–æ —É–º–æ–ª—á–∞–Ω–∏—é –∏–º–µ–µ—Ç –∑–Ω–∞—á–µ–Ω–∏–µ 10000."
+"\n /f:–∏–º—è_—Ñ–∞–π–ª–∞ - –ø–æ–ª–Ω–æ–µ –∏–º—è —Ñ–∞–π–ª–∞, –≤ –∫–æ—Ç–æ—Ä—ã–π –±—É–¥—É—Ç –∑–∞–ø–∏—Å—ã–≤–∞—Ç—å—Å—è –¥–∞–Ω–Ω—ã–µ. "
+"–ü–æ —É–º–æ–ª—á–∞–Ω–∏—é –∏–º–µ–µ—Ç –∑–Ω–∞—á–µ–Ω–∏–µ 'rnd.dat'."
+"\n /h - –∏–Ω—Ñ–æ—Ä–º–∞—Ü–∏—è –æ –ø–∞—Ä–∞–º–µ—Ç—Ä–∞—Ö –∫–æ–º–∞–Ω–¥–Ω–æ–π —Å—Ç—Ä–æ–∫–∏. –ü—Ä–∏ —É–∫–∞–∑–∞–Ω–∏–∏ –ø–∞—Ä–∞–º–µ—Ç—Ä–∞ /g: "
+"–±—É–¥–µ—Ç —Ç–∞–∫–∂–µ –ø–æ—è–≤–ª—è–µ—Ç—Å—è –¥–æ–ø–æ–ª–Ω–∏—Ç–µ–ª—å–Ω–∞—è –∏–Ω—Ñ–æ—Ä–º–∞—Ü–∏—è –æ –ø–∞—Ä–∞–º–µ—Ç—Ä–∞—Ö –≥–µ–Ω–µ—Ä–∞—Ç–æ—Ä–∞.\n";
 
 std::string lc_help_message =
-"ƒÎˇ ÎËÌÂÈÌÓ„Ó ÍÓÌ„Û˝ÌÚÌÓ„Ó „ÂÌÂ‡ÚÓ‡ ÌÂÓ·ıÓ‰ËÏÓ ‚‚ÂÒÚË Ô‡‡ÏÂÚ˚ ÒÎÂ‰Û˛˘ËÏ "
-"Ó·‡ÁÓÏ: '/i:m,a,c,last_x' - „‰Â:"
-"\n m - ÏÓ‰ÛÎ¸,"
-"\n a - ÏÌÓÊËÚÂÎ¸,"
-"\n c - ÔË‡˘ÂÌËÂ (ËÌÍÂÏÂÌÚ),"
-"\n last_x - Ì‡˜‡Î¸ÌÓÂ ÁÌ‡˜ÂÌËÂ\n";
+"–î–ª—è –ª–∏–Ω–µ–π–Ω–æ–≥–æ –∫–æ–Ω–≥—Ä—É—ç–Ω—Ç–Ω–æ–≥–æ –≥–µ–Ω–µ—Ä–∞—Ç–æ—Ä–∞ –Ω–µ–æ–±—Ö–æ–¥–∏–º–æ –≤–≤–µ—Å—Ç–∏ –ø–∞—Ä–∞–º–µ—Ç—Ä—ã —Å–ª–µ–¥—É—é—â–∏–º "
+"–æ–±—Ä–∞–∑–æ–º: '/i:m,a,c,last_x' - –≥–¥–µ:"
+"\n m - –º–æ–¥—É–ª—å,"
+"\n a - –º–Ω–æ–∂–∏—Ç–µ–ª—å,"
+"\n c - –ø—Ä–∏—Ä–∞—â–µ–Ω–∏–µ (–∏–Ω–∫—Ä–µ–º–µ–Ω—Ç),"
+"\n last_x - –Ω–∞—á–∞–ª—å–Ω–æ–µ –∑–Ω–∞—á–µ–Ω–∏–µ\n";
 
-std::string other_gen_help_message = "ƒ‡ÌÌ˚È „ÂÌÂ‡ÚÓ Â˘∏ ÌÂ „ÓÚÓ‚ ËÎË Ó¯Ë·Í‡ "
-"‚ Ì‡Á‚‡ÌËË „ÂÌÂ‡ÚÓ‡!\n";
+std::string add_help_message =
+"–î–ª—è –∞–¥–¥–∏—Ç–∏–≤–Ω–æ–≥–æ –≥–µ–Ω–µ—Ä–∞—Ç–æ—Ä–∞ –Ω–µ–æ–±—Ö–æ–¥–∏–º–æ –≤–≤–µ—Å—Ç–∏ –ø–∞—Ä–∞–º–µ—Ç—Ä—ã —Å–ª–µ–¥—É—é—â–∏–º "
+"–æ–±—Ä–∞–∑–æ–º: '/i:m,j,k,x_0,x_1,...,x_n' - –≥–¥–µ:"
+"\n m - –º–æ–¥—É–ª—å,"
+"\n j - –Ω–µ–∫–æ—Ç–æ—Ä—ã–π –∏–Ω–¥–µ–∫—Å (j > k >= 1),"
+"\n k - –Ω–µ–∫–æ—Ç–æ—Ä—ã–π –∏–Ω–¥–µ–∫—Å (j > k >= 1),"
+"\n x_0,x_1,...,x_n - –≤–≤–æ–¥–∏–º–∞—è –ø–æ—Å–ª–µ–¥–æ–≤–∞—Ç–µ–ª—å–Ω–æ—Å—Ç—å\n";
+
+std::string other_gen_help_message = "–î–∞–Ω–Ω—ã–π –≥–µ–Ω–µ—Ä–∞—Ç–æ—Ä –µ—â—ë –Ω–µ –≥–æ—Ç–æ–≤ –∏–ª–∏ –æ—à–∏–±–∫–∞ "
+"–≤ –Ω–∞–∑–≤–∞–Ω–∏–∏ –≥–µ–Ω–µ—Ä–∞—Ç–æ—Ä–∞!\n";
+
+
+std::string find_generate_method(std::string method)
+{
+    // —Ñ—É–Ω–∫—Ü–∏—è –¥–ª—è –Ω–∞—Ö–æ–∂–¥–µ–Ω–∏—è –Ω–∞–∑–≤–∞–Ω–∏—è –º–µ—Ç–æ–¥–∞ –≤ 
+    // —Å–ø–∏—Å–∫–µ –¥–æ–ø—É—Å—Ç–∏–º—ã—Ö –Ω–∞–∑–≤–∞–Ω–∏–π –º–µ—Ç–æ–¥–æ–≤
+    std::vector<std::string> method_list = {"lc", "add", "5p", "lfsr"};
+    for (int i = 0; i < method_list.size(); i++)
+    {
+        if (method == method_list[i])
+        {
+            return method;
+        }
+    }
+    return "";
+}
 
 
 void show_help_message(std::string g="", bool h=false)
 {
+    // —Ñ—É–Ω–∫—Ü–∏—è –ø–µ—á–∞—Ç–∏ –≤ –∫–æ–Ω—Å–æ–ª–∏ –≤—Å–ø–æ–º–æ–≥–∞—Ç–µ–ª—å–Ω–æ–π –∏–Ω—Ñ–æ—Ä–º–∞—Ü–∏–∏
     if (h || g == "")
     {
         std::cout << help_message << std::endl;
@@ -43,6 +67,10 @@ void show_help_message(std::string g="", bool h=false)
     if (g == "lc")
     {
         std::cout << std::endl << lc_help_message << std::endl;        
+    }
+    else if (g == "add")
+    {
+        std::cout << std::endl << add_help_message << std::endl;        
     }
     else if (g != "")
     {
@@ -53,9 +81,10 @@ void show_help_message(std::string g="", bool h=false)
 
 void show_progress(int i, int n)
 {
+    // —Ñ—É–Ω–∫—Ü–∏—è –¥–ª—è –æ—Ç–æ–±—Ä–∞–∂–µ–Ω–∏—è –≤ –∫–æ–Ω—Å–æ–ª–∏ —Å—Ç–∞—Ç—É—Å–∞ –≥–µ–Ω–µ—Ä–∞—Ü–∏–∏ –ø–æ—Å–ª–µ–¥–æ–≤–∞—Ç–µ–ª—å–Ω–æ—Å—Ç–∏
     if (i % (static_cast<int> (static_cast<float> (n) / 10) + 1) == 0)
     {
-        std::cout << "\r" << "√ÂÌÂ‡ˆËˇ ‚˚ÔÓÎÌÂÌ‡ Ì‡ " << (i * 100) / n 
+        std::cout << "\r" << "–ì–µ–Ω–µ—Ä–∞—Ü–∏—è –≤—ã–ø–æ–ª–Ω–µ–Ω–∞ –Ω–∞ " << (i * 100) / n 
                   << "%" << std::flush;
     }
 }
@@ -63,6 +92,7 @@ void show_progress(int i, int n)
 
 int linear_congruent_method(int n, std::vector<int> params, std::string f)
 {
+    // —Ä–µ–∞–ª–∏–∑–∞—Ü–∏—è –ª–∏–Ω–µ–π–Ω–æ–≥–æ –∫–æ–Ω–≥—Ä—É—ç–Ω—Ç–Ω–æ–≥–æ –º–µ—Ç–æ–¥–∞
     int m = params[0];
     int a = params[1];
     int c = params[2];
@@ -70,23 +100,56 @@ int linear_congruent_method(int n, std::vector<int> params, std::string f)
 
     std::ofstream output_file;
     output_file.open(f);
-    std::cout << "√ÂÌÂ‡ˆËˇ ‚˚ÔÓÎÌÂÌ‡ Ì‡ ";
     for (int i = 0; i < n; i++)
     {
         last_x = (a * last_x + c) % m;
         output_file << last_x << " ";
         show_progress(i, n);
     }
-    std::cout << "\r" << "√ÂÌÂ‡ˆËˇ ‚˚ÔÓÎÌÂÌ‡ Ì‡ " << 100 << "%" << std::flush 
-              << std::endl;
     output_file.close();
-    std::cout << "–ÂÁÛÎ¸Ú‡Ú ‡·ÓÚ˚ „ÂÌÂ‡ÚÓ‡ ÒÓı‡ÌÂÌ ‚ " + f + "\n";
+    return 0;
+}
+
+void print_vector(std::vector<int> some_vec)
+{
+    // –≤—ã–≤–µ—Å—Ç–∏ —Å–æ–¥–µ—Ä–∂–∏–º–æ–µ –≤–µ–∫—Ç–æ—Ä–∞ - –∏—Å–ø–æ–ª—å–∑—É–µ—Ç—Å—è –ø—Ä–∏ —Ç–µ—Å—Ç–∏—Ä–æ–≤–∞–Ω–∏–∏
+    std::cout << std::endl;
+    for (int i = 0; i < some_vec.size(); i++)
+    {
+        std::cout << some_vec[i] << ' ';
+    }
+    std::cout << std::endl;
+}
+
+int additive_method(int n, std::vector<int> params, std::string f)
+{
+    // —Ä–µ–∞–ª–∏–∑–∞—Ü–∏—è –∞–¥–¥–∏—Ç–∏–≤–Ω–æ–≥–æ –º–µ—Ç–æ–¥–∞
+    int m = params[0];
+    params.erase(params.begin());
+    int j = params[1];
+    params.erase(params.begin());
+    int k = params[2];
+    params.erase(params.begin());
+    int seq_size = params.size();
+
+    std::ofstream output_file;
+    output_file.open(f);
+    for (int i = 0; i < n; i++)
+    {
+        int next_x = (params[seq_size - k] + params[seq_size - j]) % m;
+        params.push_back(next_x);
+        params.erase(params.begin());
+        output_file << next_x << " ";
+        show_progress(i, n);
+    }
+    output_file.close();
     return 0;
 }
 
 
 std::vector<int> split(std::string str, std::string token)
 {
+    // —Ñ—É–Ω–∫—Ü–∏—è –∫–æ–Ω–≤–µ—Ä—Ç–∞—Ü–∏–∏ —Å—Ç—Ä–æ–∫–∏ —Å —á–∏—Å–ª–∞–º–∏ –≤ –≤–µ–∫—Ç–æ—Ä —Å —á–∏—Å–ª–∞–º–∏
     std::vector<int> result;
     while(str.size())
     {
@@ -110,6 +173,7 @@ std::vector<int> split(std::string str, std::string token)
 void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f, 
                 bool &h, int arg_amount, char** args)
 {
+    // —Ñ—É–Ω–∫—Ü–∏—è –¥–ª—è –ø–∞—Ä—Å–∏–Ω–≥–∞ –ø–∞—Ä–∞–º–µ—Ç—Ä–æ–≤
     std::vector<std::pair<std::string, int>> default_args = {{"/g:", 0},
         {"/i:", 1}, {"/n:", 2}, {"/f:", 3}, {"/h", 4}};
     int default_args_amount = default_args.size();
@@ -159,8 +223,6 @@ void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f,
 
 int main(int argc, char** argv)
 {
-    setlocale(LC_ALL, "Russian");
-    
     std::string g;
     std::vector<int> init;
     int n;
@@ -169,16 +231,28 @@ int main(int argc, char** argv)
 
     parse_args(g, init, n, f, h, argc, argv);
     
+    g = find_generate_method(g);
+
     if (g != "" && !init.empty())
     {
         if (h)
         {
             show_help_message(g, h);
         }
+        std::cout << "–ì–µ–Ω–µ—Ä–∞—Ü–∏—è –≤—ã–ø–æ–ª–Ω–µ–Ω–∞ –Ω–∞ ";
         if (g == "lc")
         {
             linear_congruent_method(n, init, f);
         }
+        else if (g == "add")
+        {
+            additive_method(n, init, f);
+        }
+
+        std::cout << "\r" << "–ì–µ–Ω–µ—Ä–∞—Ü–∏—è –≤—ã–ø–æ–ª–Ω–µ–Ω–∞ –Ω–∞ " << 100 << "%" << std::flush 
+              << std::endl;
+        std::cout << "–†–µ–∑—É–ª—å—Ç–∞—Ç —Ä–∞–±–æ—Ç—ã –≥–µ–Ω–µ—Ä–∞—Ç–æ—Ä–∞ —Å–æ—Ö—Ä–∞–Ω–µ–Ω –≤ " + f + "\n";
+
     }
     else
     {
