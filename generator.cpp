@@ -5,8 +5,66 @@
 #include <cstdio>
 #include <functional>
 #include <map>
-// #include <chrono>
-// #include <thread>
+#include <bitset>
+// #include <boo
+
+void print_vector(std::vector<int> some_vec)
+{
+    // вывести содержимое вектора - используется при тестировании
+    std::cout << std::endl;
+    for (int i = 0; i < some_vec.size(); i++)
+    {
+        std::cout << some_vec[i] << ',';
+    }
+    std::cout << std::endl;
+}
+
+
+std::vector<int> split_to_int(std::string str, std::string token)
+{
+    // функция конвертации строки с числами в вектор с числами
+    std::vector<int> result;
+    while(str.size())
+    {
+        int index = str.find(token);
+        if(index != std::string::npos)
+        {
+            result.push_back(std::stoi(str.substr(0,index)));
+            str = str.substr(index + token.size());
+            if (str.size() == 0) result.push_back(std::stoi(str));
+        }
+        else
+        {
+            result.push_back(std::stoi(str));
+            str = "";
+        }
+    }
+    return result;
+}
+
+
+std::vector<std::string> split_to_str(std::string str, std::string token)
+{
+    // функция конвертации строки с числами в вектор со строками
+    std::vector<std::string> result;
+    while(str.size())
+    {
+        int index = str.find(token);
+        if(index != std::string::npos)
+        {
+            result.push_back(str.substr(0,index));
+            str = str.substr(index + token.size());
+            if (str.size() == 0) result.push_back(str);
+        }
+        else
+        {
+            result.push_back(str);
+            str = "";
+        }
+    }
+    return result;
+}
+
 
 std::string help_message =
 "Аргументы должны вводиться следующим образом:"
@@ -36,6 +94,12 @@ std::string add_help_message =
 "\n j - некоторый индекс (j > k >= 1),"
 "\n k - некоторый индекс (j > k >= 1),"
 "\n x_0,x_1,...,x_n - вводимая последовательность\n";
+
+std::string lfsr_help_message =
+"Для генератора РСЛОС необходимо ввести параметры следующим "
+"образом: '/i:r,c' - где:"
+"\n r - начальное состояние регистра (32 числа '0' или '1' без разделителей),"
+"\n c - коэффициенты многочлена (32 числа '0' или '1' без разделителей)\n";
 
 std::string other_gen_help_message = "Данный генератор ещё не готов или ошибка "
 "в названии генератора!\n";
@@ -72,6 +136,10 @@ void show_help_message(std::string g="", bool h=false)
     {
         std::cout << std::endl << add_help_message << std::endl;        
     }
+    else if (g == "lfsr")
+    {
+        std::cout << std::endl << lfsr_help_message << std::endl;        
+    }
     else if (g != "")
     {
         std::cout << std::endl << other_gen_help_message << std::endl;
@@ -103,23 +171,13 @@ int linear_congruent_method(int n, std::vector<int> params, std::string f)
     for (int i = 0; i < n; i++)
     {
         last_x = (a * last_x + c) % m;
-        output_file << last_x << " ";
+        output_file << last_x << ',';
         show_progress(i, n);
     }
     output_file.close();
     return 0;
 }
 
-void print_vector(std::vector<int> some_vec)
-{
-    // вывести содержимое вектора - используется при тестировании
-    std::cout << std::endl;
-    for (int i = 0; i < some_vec.size(); i++)
-    {
-        std::cout << some_vec[i] << ' ';
-    }
-    std::cout << std::endl;
-}
 
 int additive_method(int n, std::vector<int> params, std::string f)
 {
@@ -139,7 +197,7 @@ int additive_method(int n, std::vector<int> params, std::string f)
         int next_x = (params[seq_size - k] + params[seq_size - j]) % m;
         params.push_back(next_x);
         params.erase(params.begin());
-        output_file << next_x << " ";
+        output_file << next_x << ',';
         show_progress(i, n);
     }
     output_file.close();
@@ -147,31 +205,37 @@ int additive_method(int n, std::vector<int> params, std::string f)
 }
 
 
-std::vector<int> split(std::string str, std::string token)
+int lfsr_method(int n, std::vector<std::string> str_init, std::string f)
 {
-    // функция конвертации строки с числами в вектор с числами
-    std::vector<int> result;
-    while(str.size())
+    // реализация РСЛОС метода
+    const int bit_amount = 32;
+    std::bitset<bit_amount> init_register(str_init[0]);
+    std::bitset<bit_amount> poly_coeffs(str_init[1]);
+
+    std::ofstream output_file;
+    output_file.open(f);
+    for (int i = 0; i < n; i++)
     {
-        int index = str.find(token);
-        if(index != std::string::npos)
+        output_file << init_register.to_ulong() << ',';
+
+        bool current_bit = 0;
+        for (int j = 0; j < bit_amount; j++)
         {
-            result.push_back(std::stoi(str.substr(0,index)));
-            str = str.substr(index + token.size());
-            if (str.size() == 0) result.push_back(std::stoi(str));
+            current_bit ^= init_register[j] * poly_coeffs[j];
         }
-        else
-        {
-            result.push_back(std::stoi(str));
-            str = "";
-        }
+        init_register >>= 1;
+        init_register[bit_amount - 1] = current_bit;
+
+        show_progress(i, n);
     }
-    return result;
+    output_file.close();
+    return 0;
 }
 
 
 void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f, 
-                bool &h, int arg_amount, char** args)
+                bool &h, std::vector<std::string> &str_init, int arg_amount,
+                char** args)
 {
     // функция для парсинга параметров
     std::vector<std::pair<std::string, int>> default_args = {{"/g:", 0},
@@ -179,6 +243,7 @@ void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f,
     int default_args_amount = default_args.size();
     f = "rnd.dat";
     n = 10000;
+    std::string pre_init;
     try
     {
         for (int i = 1; i < arg_amount; ++i)
@@ -196,7 +261,7 @@ void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f,
                         break;
                     case 1:
                         cur_arg.erase(0, 3);
-                        init = split(cur_arg, ",");
+                        pre_init = cur_arg;
                         break;
                     case 2:
                         cur_arg.erase(0, 3);
@@ -213,6 +278,14 @@ void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f,
                 }
             }
         }
+        if (g == "lfsr")
+        {
+            str_init = split_to_str(pre_init, ",");
+        }
+        else
+        {
+            init = split_to_int(pre_init, ",");
+        }
     }
     catch(const std::exception& e)
     {
@@ -223,17 +296,19 @@ void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f,
 
 int main(int argc, char** argv)
 {
+    setlocale(LC_ALL, "Russian");
     std::string g;
     std::vector<int> init;
+    std::vector<std::string> str_init;
     int n;
     std::string f;
     bool h = false;
 
-    parse_args(g, init, n, f, h, argc, argv);
+    parse_args(g, init, n, f, h, str_init, argc, argv);
     
     g = find_generate_method(g);
 
-    if (g != "" && !init.empty())
+    if (g != "" && (!init.empty() || !str_init.empty()))
     {
         if (h)
         {
@@ -248,7 +323,11 @@ int main(int argc, char** argv)
         {
             additive_method(n, init, f);
         }
-
+        else if (g == "lfsr")
+        {
+            lfsr_method(n, str_init, f);
+        }
+        
         std::cout << "\r" << "Генерация выполнена на " << 100 << "%" << std::flush 
               << std::endl;
         std::cout << "Результат работы генератора сохранен в " + f + "\n";
