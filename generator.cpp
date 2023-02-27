@@ -6,7 +6,8 @@
 #include <functional>
 #include <map>
 #include <bitset>
-// #include <boo
+#include <boost/dynamic_bitset.hpp>
+
 
 void print_vector(std::vector<int> some_vec)
 {
@@ -101,6 +102,13 @@ std::string lfsr_help_message =
 "\n r - начальное состояние регистра (32 числа '0' или '1' без разделителей),"
 "\n c - коэффициенты многочлена (32 числа '0' или '1' без разделителей)\n";
 
+std::string fp_help_message =
+"Для пятипараметрического генератора необходимо ввести параметры следующим "
+"образом: '/i:q_1,q_2,q_3,w,s' - где:"
+"\n q_1,q_2,q_3 - коэффициенты пятипараметрического метода,"
+"\n w - размерность чисел в битах (по умолчанию 32)"
+"\n s - начальное состояние регистра (w чисел '0' или '1' без разделителей)";
+
 std::string other_gen_help_message = "Данный генератор ещё не готов или ошибка "
 "в названии генератора!\n";
 
@@ -139,6 +147,10 @@ void show_help_message(std::string g="", bool h=false)
     else if (g == "lfsr")
     {
         std::cout << std::endl << lfsr_help_message << std::endl;        
+    }
+    else if (g == "5p")
+    {
+        std::cout << std::endl << fp_help_message << std::endl;        
     }
     else if (g != "")
     {
@@ -225,6 +237,38 @@ int lfsr_method(int n, std::vector<std::string> str_init, std::string f)
         }
         init_register >>= 1;
         init_register[bit_amount - 1] = current_bit;
+
+        show_progress(i, n);
+    }
+    output_file.close();
+    return 0;
+}
+
+
+int five_param_method(int n, std::vector<int> str_init, std::string f)
+{
+    // реализация пятипараметрического метода
+    int q_1 = str_init[0];
+    int q_2 = str_init[1];
+    int q_3 = str_init[2];
+    int w = str_init[3];
+    int p = str_init[4];
+    
+    boost::dynamic_bitset<> init_register(w, p);
+
+    std::ofstream output_file;
+    output_file.open(f);
+    for (int i = 0; i < n; i++)
+    {
+        output_file << init_register.to_ulong() << ',';
+
+        bool current_bit = 0;
+        current_bit = init_register[0]
+                      ^ init_register[q_3]
+                      ^ init_register[q_2]
+                      ^ init_register[q_1];
+        init_register >>= 1;
+        init_register[w - 1] = current_bit;
 
         show_progress(i, n);
     }
@@ -327,11 +371,13 @@ int main(int argc, char** argv)
         {
             lfsr_method(n, str_init, f);
         }
-        
+        else if (g == "5p")
+        {
+            five_param_method(n, init, f);
+        }
         std::cout << "\r" << "Генерация выполнена на " << 100 << "%" << std::flush 
               << std::endl;
         std::cout << "Результат работы генератора сохранен в " + f + "\n";
-
     }
     else
     {
