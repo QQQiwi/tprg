@@ -474,6 +474,7 @@ void twist(int* mt, const int p,
 
 int mt_method(int n, std::vector<int> str_init, std::string f)
 {
+    // Метод вихря Мерсенна
     int mod = str_init[0];
     int x = str_init[1];
 
