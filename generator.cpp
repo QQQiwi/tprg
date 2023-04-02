@@ -122,11 +122,18 @@ std::string nfsr_help_message =
 "\n r3 - начальное состояние регистра 3,"
 "\n c3 - коэффициенты многочлена 3\n";
 
-// rc4_method
 std::string rc4_help_message =
 "Для метода RC4 необходимо ввести параметры следующим "
 "образом: '/i:x1,x2,...,x256' - где:"
 "\n x1,... - первые 256 начальных значений\n";
+
+std::string rsa_help_message =
+"Для метода RSA необходимо ввести параметры следующим "
+"образом: '/i:n,e,x' - где:"
+"\n n - модуль, n = pq, где p и q - простые числа,"
+"\n e - случайное целое число, такое, что: 1 < e < (p - 1)(q - 1),"
+"\n x - начальное значение из интервала [1, n - 1]\n";
+
 
 std::string other_gen_help_message = "Данный генератор ещё не готов или ошибка "
 "в названии генератора!\n";
@@ -136,7 +143,7 @@ std::string find_generate_method(std::string method)
     // функция для нахождения названия метода в 
     // списке допустимых названий методов
     std::vector<std::string> method_list = {"lc", "add", "5p", "lfsr", "nfsr",
-                                            "rc4"};
+                                            "rc4", "rsa"};
     for (int i = 0; i < method_list.size(); i++)
     {
         if (method == method_list[i])
@@ -178,6 +185,10 @@ void show_help_message(std::string g="", bool h=false)
     else if (g == "rc4")
     {
         std::cout << std::endl << rc4_help_message << std::endl;        
+    }
+    else if (g == "rsa")
+    {
+        std::cout << std::endl << rsa_help_message << std::endl;        
     }
     else if (g != "")
     {
@@ -411,14 +422,9 @@ int nfsr_method(int n, std::vector<std::string> str_init, std::string f)
 }
 
 
-int mt_method()
-{
-    return 0;
-}
-
-
 int rc4_method(int n, std::vector<int> str_init, std::string f)
 {
+    // Метод RC4
     std::vector<int> s_block;
     for (int i = 0; i < 256; i++)
     {
@@ -448,6 +454,49 @@ int rc4_method(int n, std::vector<int> str_init, std::string f)
         show_progress(i, n);
     }
     
+    output_file.close();
+    return 0;
+}
+
+
+int module_power(int x, int y, int mod)
+{
+    // возведение в степень по модулю
+    if (y == 0)
+    {
+        return 1;
+    }
+    int temp = module_power(x, y / 2, mod) % mod;
+    temp = (temp * temp) % mod;
+    if (y % 2 == 1)
+    {
+        temp = (temp * x) % mod;
+    }
+    return temp;
+}
+
+
+int rsa_method(int n, std::vector<int> str_init, std::string f)
+{
+    // Метод RSA
+    int mod = str_init[0];
+    int e = str_init[1];
+    int x = str_init[2];
+
+    int l = 10;
+    std::ofstream output_file;
+    output_file.open(f);
+    for (int i = 0; i < n; i++)
+    {
+        std::string z_seq = "";
+        for (int j = 0; j < l; j++)
+        {
+            x = module_power(x, e, mod);
+            int cur_z = x % 2;
+            z_seq.append(std::to_string(cur_z));
+        }
+        output_file << std::stoi(z_seq, nullptr, 2) << ',';
+    }    
     output_file.close();
     return 0;
 }
@@ -559,6 +608,10 @@ int main(int argc, char** argv)
         else if (g == "rc4")
         {
             generation_status = rc4_method(n, init, f);
+        }
+        else if (g == "rsa")
+        {
+            generation_status = rsa_method(n, init, f);
         }
         if (!generation_status)
         {
