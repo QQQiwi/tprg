@@ -114,13 +114,20 @@ std::string fp_help_message =
 
 std::string nfsr_help_message =
 "Для нелинейной комбинации РСЛОС необходимо ввести параметры следующим "
-"образом: '/i:r1,c1,r2,c2,r3,c3' - где:"
-"\n r1 - начальное состояние регистра 1 (32 числа '0' или '1' без разделителей),"
-"\n c1 - коэффициенты многочлена 1 (32 числа '0' или '1' без разделителей),"
-"\n r2 - начальное состояние регистра 2,"
-"\n c2 - коэффициенты многочлена 2,"
-"\n r3 - начальное состояние регистра 3,"
-"\n c3 - коэффициенты многочлена 3\n";
+"образом: '/i:r1,r2,r3,w,c1,c2,c3' - где:"
+"\n r1 - двоичное представление коэффициентов 1 (32 числа '0' или '1' без разделителей),"
+"\n r2 - двоичное представление коэффициентов 2,"
+"\n r3 - двоичное представление коэффициентов 3,"
+"\n w - длина слова,"
+"\n c1 - десятичное представление начальных состояний регистров 1,"
+"\n c2 - десятичное представление начальных состояний регистров 2,"
+"\n c3 - десятичное представление начальных состояний регистров 3\n";
+
+std::string mt_help_message =
+"Для метода вихря Мерсенна необходимо ввести параметры следующим "
+"образом: '/i:m,x' - где:"
+"\n m - модуль,"
+"\n x - начальное значение\n";
 
 std::string rc4_help_message =
 "Для метода RC4 необходимо ввести параметры следующим "
@@ -134,6 +141,10 @@ std::string rsa_help_message =
 "\n e - случайное целое число, такое, что: 1 < e < (p - 1)(q - 1),"
 "\n x - начальное значение из интервала [1, n - 1]\n";
 
+std::string bbs_help_message =
+"Для метода BBS необходимо ввести параметры следующим "
+"образом: '/i:x' - где:"
+"\n x - начальное значение, взаимно простое с 16637\n";
 
 std::string other_gen_help_message = "Данный генератор ещё не готов или ошибка "
 "в названии генератора!\n";
@@ -143,7 +154,7 @@ std::string find_generate_method(std::string method)
     // функция для нахождения названия метода в 
     // списке допустимых названий методов
     std::vector<std::string> method_list = {"lc", "add", "5p", "lfsr", "nfsr",
-                                            "rc4", "rsa"};
+                                            "rc4", "rsa", "bbs", "mt"};
     for (int i = 0; i < method_list.size(); i++)
     {
         if (method == method_list[i])
@@ -182,6 +193,10 @@ void show_help_message(std::string g="", bool h=false)
     {
         std::cout << std::endl << nfsr_help_message << std::endl;        
     }
+    else if (g == "mt")
+    {
+        std::cout << std::endl << mt_help_message << std::endl;        
+    }
     else if (g == "rc4")
     {
         std::cout << std::endl << rc4_help_message << std::endl;        
@@ -189,6 +204,10 @@ void show_help_message(std::string g="", bool h=false)
     else if (g == "rsa")
     {
         std::cout << std::endl << rsa_help_message << std::endl;        
+    }
+    else if (g == "bbs")
+    {
+        std::cout << std::endl << bbs_help_message << std::endl;        
     }
     else if (g != "")
     {
@@ -387,28 +406,36 @@ int five_param_method(int n, std::vector<int> str_init, std::string f)
     return 0;
 }
 
-// 00000000000000000000000000000110
-// 00000000000000000000000000000001
-// 00000000000000000000000000000100
-// 00000000000000000000000000000001
-// 00000000000000000000000000000010
-// 00000000000000000000000000000001
+
+template <typename Bitset>
+void set_in_range(Bitset& b, unsigned value, int from, int to)
+{
+  for (int i = from; i < to; ++i, value >>= 1)
+    b[i] = (value & 1);
+}
 
 int nfsr_method(int n, std::vector<std::string> str_init, std::string f)
 {
+    // реализация нелинейной комбинации РСЛОС
     std::bitset<BIT_AMOUNT> pc_1(str_init[0]);
-    std::bitset<BIT_AMOUNT> ir_1(str_init[1]);
-    std::bitset<BIT_AMOUNT> pc_2(str_init[2]);
-    std::bitset<BIT_AMOUNT> ir_2(str_init[3]);
-    std::bitset<BIT_AMOUNT> pc_3(str_init[4]);
-    std::bitset<BIT_AMOUNT> ir_3(str_init[5]);
-    std::bitset<BIT_AMOUNT> cur_reg;
+    std::bitset<BIT_AMOUNT> pc_2(str_init[1]);
+    std::bitset<BIT_AMOUNT> pc_3(str_init[2]);
+
+    int w = stoi(str_init[3]);
+    boost::dynamic_bitset<> cur_reg(w, 0);
+
+    std::bitset<BIT_AMOUNT> ir_1(stoi(str_init[4]));
+    std::bitset<BIT_AMOUNT> ir_2(stoi(str_init[5]));
+    std::bitset<BIT_AMOUNT> ir_3(stoi(str_init[6]));
 
     std::ofstream output_file;
     output_file.open(f);
     for (int i = 0; i < n; i++)
     {
-        cur_reg = (ir_1 & ir_2) ^ (ir_2 & ir_3) ^ ir_3;
+        set_in_range(cur_reg,
+                     ((ir_1 & ir_2) ^ (ir_2 & ir_3) ^ ir_3).to_ulong(),
+                     0,
+                     w - 1);
         output_file << cur_reg.to_ulong() << ',';
 
         ir_1 = lfsr_iteration(ir_1, pc_1);
@@ -422,7 +449,91 @@ int nfsr_method(int n, std::vector<std::string> str_init, std::string f)
 }
 
 
-int rc4_method(int n, std::vector<int> str_init, std::string f)
+template<typename T>
+constexpr T low_bits(T v, int bit_mnt) {
+    return v & ((1 << bit_mnt) - 1);
+}
+
+void twist(int* mt, const int p,
+           const int upper_mask, const int lower_mask,
+           const uint32_t a, const int m, int &index)
+{
+    for (int i = 0; i < p; i++)
+    {
+        int x = (mt[i] & upper_mask) + (mt[(i + 1) % p] & lower_mask);
+        int xA = x >> 1;
+        if (x % 2 != 0)
+        {
+            xA = xA ^ a;
+        }
+        mt[i] = mt[(i + m) % p] ^ xA;
+    }
+    index = 0;
+}
+
+
+int mt_method(int n, std::vector<int> str_init, std::string f)
+{
+    int mod = str_init[0];
+    int x = str_init[1];
+
+    // выставляю константные параметры вихря (согласно англ. википедии)
+    const unsigned int w = BIT_AMOUNT; // количество бит (можно переделать под 64)
+    const unsigned int p = 624;
+    const unsigned int m = 397;
+    const unsigned int r = 31;
+    const uint32_t a = 0x9908B0DFUL;
+    const unsigned int u = 11;
+    const uint32_t d = 0xFFFFFFFFUL;
+    const unsigned int s = 7;
+    const uint32_t b = 0x9D2C5680UL;
+    const unsigned int t = 15;
+    const uint32_t c = 0xEFC60000UL;
+    const unsigned int l = 18;
+    const uint32_t f_par = 1812433253;
+
+    const int lower_mask = (1 << r) - 1;
+    const int upper_mask = low_bits(~lower_mask, w);
+
+    int mt[p];
+    int index = p + 1;
+
+
+    // Инициализация генератора
+    index = p;
+    mt[0] = x;
+    for (int i = 0; i < p; i++)
+    {
+        mt[i] = low_bits((f_par * mt[i - 1] ^ (mt[i - 1] >> (w - 2))) + i, 
+                         w - 1);
+    }
+
+    std::ofstream output_file;
+    output_file.open(f);
+    for (int i = 0; i < n; i++)
+    {
+        if (index >= p)
+        {
+            twist(mt, p, upper_mask, lower_mask, a, m, index);
+        }
+
+        int y = mt[index];
+        y ^= ((y >> u) & d);
+        y ^= ((y << s) & b);
+        y ^= ((y >> t) & c);
+        y ^= y >> l;
+
+        index += 1;
+
+        output_file << y % mod << ',';
+        show_progress(i, n);
+    }
+    output_file.close();
+    return 0;
+}
+
+
+int rc4_method(int n, std::vector<int> first_xs, std::string f)
 {
     // Метод RC4
     std::vector<int> s_block;
@@ -433,7 +544,7 @@ int rc4_method(int n, std::vector<int> str_init, std::string f)
     int j = 0;
     for (int i = 0; i < 256; i++)
     {
-        j = (j + s_block[i] + str_init[i]) % 256;
+        j = (j + s_block[i] + first_xs[i]) % 256;
         std::swap(s_block[i], s_block[j]);
     }
 
@@ -496,6 +607,41 @@ int rsa_method(int n, std::vector<int> str_init, std::string f)
             z_seq.append(std::to_string(cur_z));
         }
         output_file << std::stoi(z_seq, nullptr, 2) << ',';
+        show_progress(i, n);
+    }    
+    output_file.close();
+    return 0;
+}
+
+
+int bbs_method(int n, std::vector<int> str_init, std::string f)
+{
+    // Метод Блюма-Блюма-Шуба
+    int x = str_init[0];
+    int prime_number = 16637;
+
+    if (std::__gcd(x, prime_number) != 1)
+    {
+        std::cout << std::endl;
+        std::cout << "Генерация отменена - введенный x не взаимно простой с 16637! "
+                     "Измените входные параметры.";
+        return 1;
+    }
+
+    int l = 10;
+    std::ofstream output_file;
+    output_file.open(f);
+    for (int i = 0; i < n; i++)
+    {
+        std::string z_seq = "";
+        for (int j = 0; j < l; j++)
+        {
+            x = module_power(x, 2, prime_number);
+            int cur_z = x % 2;
+            z_seq.append(std::to_string(cur_z));
+        }
+        output_file << std::stoi(z_seq, nullptr, 2) << ',';
+        show_progress(i, n);
     }    
     output_file.close();
     return 0;
@@ -605,6 +751,10 @@ int main(int argc, char** argv)
         {
             generation_status = nfsr_method(n, str_init, f);
         }
+        else if (g == "mt")
+        {
+            generation_status = mt_method(n, init, f);
+        }
         else if (g == "rc4")
         {
             generation_status = rc4_method(n, init, f);
@@ -612,6 +762,10 @@ int main(int argc, char** argv)
         else if (g == "rsa")
         {
             generation_status = rsa_method(n, init, f);
+        }
+        else if (g == "bbs")
+        {
+            generation_status = bbs_method(n, init, f);
         }
         if (!generation_status)
         {
@@ -625,5 +779,3 @@ int main(int argc, char** argv)
         show_help_message(g, h);
     }
 }
-
-// 1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8
