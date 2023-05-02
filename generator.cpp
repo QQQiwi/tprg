@@ -11,6 +11,8 @@
 
 
 const int BIT_AMOUNT = 32;
+const int UPPER_BOUND = 1024;
+
 
 void print_vector(std::vector<int> some_vec)
 {
@@ -306,8 +308,8 @@ int linear_congruent_method(int n, std::vector<int> params, std::string f)
     output_file.open(f);
     for (int i = 0; i < n; i++)
     {
-        last_x = (a * last_x + c) % m;
-        output_file << last_x << ',';
+        last_x = ((a * last_x + c) % m) % UPPER_BOUND;
+        output_file << last_x % UPPER_BOUND << ',';
         show_progress(i, n);
     }
     output_file.close();
@@ -331,9 +333,9 @@ int additive_method(int n, std::vector<int> params, std::string f)
     for (int i = 0; i < n; i++)
     {
         int next_x = (params[seq_size - k] + params[seq_size - j]) % m;
-        params.push_back(next_x);
+        params.push_back(next_x % UPPER_BOUND);
         params.erase(params.begin());
-        output_file << next_x << ',';
+        output_file << next_x % UPPER_BOUND << ',';
         show_progress(i, n);
     }
     output_file.close();
@@ -365,7 +367,7 @@ int lfsr_method(int n, std::vector<std::string> str_init, std::string f)
     output_file.open(f);
     for (int i = 0; i < n; i++)
     {
-        output_file << init_register.to_ulong() << ',';
+        output_file << init_register.to_ulong() % UPPER_BOUND << ',';
         init_register = lfsr_iteration(init_register, poly_coeffs);
         show_progress(i, n);
     }
@@ -389,7 +391,7 @@ int five_param_method(int n, std::vector<int> str_init, std::string f)
     output_file.open(f);
     for (int i = 0; i < n; i++)
     {
-        output_file << init_register.to_ulong() << ',';
+        output_file << init_register.to_ulong() % UPPER_BOUND << ',';
 
         bool current_bit = 0;
         current_bit = init_register[0]
@@ -435,7 +437,7 @@ int nfsr_method(int n, std::vector<std::string> str_init, std::string f)
                      ((ir_1 & ir_2) ^ (ir_2 & ir_3) ^ ir_3).to_ulong(),
                      0,
                      w - 1);
-        output_file << cur_reg.to_ulong() << ',';
+        output_file << cur_reg.to_ulong() % UPPER_BOUND << ',';
 
         ir_1 = lfsr_iteration(ir_1, pc_1);
         ir_2 = lfsr_iteration(ir_2, pc_2);
@@ -525,7 +527,7 @@ int mt_method(int n, std::vector<int> str_init, std::string f)
 
         index += 1;
 
-        output_file << y % mod << ',';
+        output_file << (y % mod) % UPPER_BOUND << ',';
         show_progress(i, n);
     }
     output_file.close();
@@ -561,7 +563,7 @@ int rc4_method(int n, std::vector<int> first_xs, std::string f)
         int t = (s_block[i] + s_block[j]) % 256;
         int k = s_block[t];
 
-        output_file << k << ',';
+        output_file << k % UPPER_BOUND << ',';
         show_progress(i, n);
     }
     
@@ -606,7 +608,7 @@ int rsa_method(int n, std::vector<int> str_init, std::string f)
             int cur_z = x % 2;
             z_seq.append(std::to_string(cur_z));
         }
-        output_file << std::stoi(z_seq, nullptr, 2) << ',';
+        output_file << std::stoi(z_seq, nullptr, 2) % UPPER_BOUND << ',';
         show_progress(i, n);
     }    
     output_file.close();
@@ -640,7 +642,7 @@ int bbs_method(int n, std::vector<int> str_init, std::string f)
             int cur_z = x % 2;
             z_seq.append(std::to_string(cur_z));
         }
-        output_file << std::stoi(z_seq, nullptr, 2) << ',';
+        output_file << std::stoi(z_seq, nullptr, 2) % UPPER_BOUND << ',';
         show_progress(i, n);
     }    
     output_file.close();
