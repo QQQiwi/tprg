@@ -298,9 +298,8 @@ int linear_congruent_method(int n, std::vector<int> params, std::string f)
     if (!check_linear_params(m, a, c))
     {
         std::cout << std::endl;
-        std::cout << "Генерация отменена - свойства теоремы не выполняются! "
-                     "Измените входные параметры.";
-        return 1;
+        std::cout << "Свойства теоремы не выполняются! ";
+        std::cout << std::endl;
     }
 
     std::ofstream output_file;
