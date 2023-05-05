@@ -306,6 +306,8 @@ int linear_congruent_method(int n, std::vector<int> params, std::string f)
 
     std::ofstream output_file;
     output_file.open(f);
+
+    output_file << last_x << ',';
     for (int i = 0; i < n; i++)
     {
         last_x = ((a * last_x + c) % m) % UPPER_BOUND;
@@ -330,6 +332,11 @@ int additive_method(int n, std::vector<int> params, std::string f)
 
     std::ofstream output_file;
     output_file.open(f);
+    for (int i = 0; i < seq_size; i++)
+    {
+        output_file << params[i] % UPPER_BOUND << ',';
+    }
+    
     for (int i = 0; i < n; i++)
     {
         int next_x = (params[seq_size - k] + params[seq_size - j]) % m;
@@ -384,8 +391,9 @@ int five_param_method(int n, std::vector<int> str_init, std::string f)
     int q_2 = str_init[2];
     int q_3 = str_init[3];
     int w = str_init[4];
+    int init_x = str_init[5];
     
-    boost::dynamic_bitset<> init_register(w, p);
+    boost::dynamic_bitset<> init_register(w, init_x);
 
     std::ofstream output_file;
     output_file.open(f);
@@ -393,13 +401,12 @@ int five_param_method(int n, std::vector<int> str_init, std::string f)
     {
         output_file << init_register.to_ulong() % UPPER_BOUND << ',';
 
-        bool current_bit = 0;
-        current_bit = init_register[0]
-                      ^ init_register[q_3]
-                      ^ init_register[q_2]
-                      ^ init_register[q_1];
+        init_register[p] = init_register[0]
+                           ^ init_register[q_3]
+                           ^ init_register[q_2]
+                           ^ init_register[q_1];
         init_register >>= 1;
-        init_register[w - 1] = current_bit;
+        init_register[w - 1] = 0;
 
         show_progress(i, n);
     }
@@ -512,6 +519,7 @@ int mt_method(int n, std::vector<int> str_init, std::string f)
 
     std::ofstream output_file;
     output_file.open(f);
+    output_file << x % UPPER_BOUND << ',';
     for (int i = 0; i < n; i++)
     {
         if (index >= p)
@@ -552,7 +560,11 @@ int rc4_method(int n, std::vector<int> first_xs, std::string f)
 
     std::ofstream output_file;
     output_file.open(f);
-    
+    for (int i = 0; i < first_xs.size(); i++)
+    {
+        output_file << first_xs[i] % UPPER_BOUND << ',';
+    }
+
     int i = 0;
     j = 0;
     for (int l = 0; l < n; l++)
@@ -596,9 +608,11 @@ int rsa_method(int n, std::vector<int> str_init, std::string f)
     int e = str_init[1];
     int l = str_init[2];
     int x = str_init[3];
-    
+
     std::ofstream output_file;
     output_file.open(f);
+
+    output_file << x % UPPER_BOUND << ',';
     for (int i = 0; i < n; i++)
     {
         std::string z_seq = "";
@@ -633,6 +647,7 @@ int bbs_method(int n, std::vector<int> str_init, std::string f)
     int l = 10;
     std::ofstream output_file;
     output_file.open(f);
+    output_file << x % UPPER_BOUND << ',';
     for (int i = 0; i < n; i++)
     {
         std::string z_seq = "";
