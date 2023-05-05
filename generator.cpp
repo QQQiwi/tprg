@@ -594,9 +594,9 @@ int rsa_method(int n, std::vector<int> str_init, std::string f)
     // Метод RSA
     int mod = str_init[0];
     int e = str_init[1];
-    int x = str_init[2];
-
-    int l = 10;
+    int l = str_init[2];
+    int x = str_init[3];
+    
     std::ofstream output_file;
     output_file.open(f);
     for (int i = 0; i < n; i++)
