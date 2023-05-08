@@ -1,0 +1,8 @@
+*.csv
+*mail-data
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.toc
+*.synctex.gz

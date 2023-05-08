@@ -1,0 +1,47 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+  // Создание массива длины n для сохранения состояний генератора
+  int[0..n\PYGZhy{}1] MT
+  int index := n+1
+  const int lower\PYGZus{}mask = (1 \PYGZlt{}\PYGZlt{} r) \PYGZhy{} 1
+  const int upper\PYGZus{}mask = lowest w bits of (not lower\PYGZus{}mask)
+
+  // Initialize the generator from a seed
+  function seed\PYGZus{}mt(int seed) \PYGZob{}
+      index := n
+      MT[0] := seed
+      for i from 1 to (n \PYGZhy{} 1) \PYGZob{} // loop over each element
+          MT[i] := lowest w bits of (f * (MT[i\PYGZhy{}1] xor (MT[i\PYGZhy{}1] \PYGZgt{}\PYGZgt{} (w\PYGZhy{}2))) + i)
+      \PYGZcb{}
+  \PYGZcb{}
+
+  // Извлечение чисел на основе массива MT[index]
+  // Вызывает twist() каждые n чисел
+  function extract\PYGZus{}number() \PYGZob{}
+      if index \PYGZgt{}= n \PYGZob{}
+          twist()
+      \PYGZcb{}
+
+      int y := MT[index]
+      y := y xor ((y \PYGZgt{}\PYGZgt{} u) and d)
+      y := y xor ((y \PYGZlt{}\PYGZlt{} s) and b)
+      y := y xor ((y \PYGZlt{}\PYGZlt{} t) and c)
+      y := y xor (y \PYGZgt{}\PYGZgt{} l)
+
+      index := index + 1
+      return lowest w bits of (y)
+  \PYGZcb{}
+
+  // Генерация следующих n значений
+  function twist() \PYGZob{}
+      for i from 0 to (n\PYGZhy{}1) \PYGZob{}
+          int x := (MT[i] and upper\PYGZus{}mask)
+                    | (MT[(i+1) mod n] and lower\PYGZus{}mask)
+          int xA := x \PYGZgt{}\PYGZgt{} 1
+          if (x mod 2) != 0 \PYGZob{} // lowest bit of x is 1
+              xA := xA xor a
+          \PYGZcb{}
+          MT[i] := MT[(i + m) mod n] xor xA
+      \PYGZcb{}
+      index := 0
+  \PYGZcb{}
+\end{Verbatim}

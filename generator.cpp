@@ -109,10 +109,10 @@ std::string lfsr_help_message =
 
 std::string fp_help_message =
 "Для пятипараметрического генератора необходимо ввести параметры следующим "
-"образом: '/i:s,q_1,q_2,q_3,w' - где:"
-"\n q_1,q_2,q_3 - коэффициенты пятипараметрического метода,"
+"образом: '/i:p,q_1,q_2,q_3,w,x' - где:"
+"\n p,q_1,q_2,q_3 - коэффициенты пятипараметрического метода,"
 "\n w - размерность чисел в битах (целое положительное число)"
-"\n p - начальное состояние регистра (целое положительное число)";
+"\n x - начальное значение регистра (целое положительное число)";
 
 std::string nfsr_help_message =
 "Для нелинейной комбинации РСЛОС необходимо ввести параметры следующим "
@@ -138,9 +138,10 @@ std::string rc4_help_message =
 
 std::string rsa_help_message =
 "Для метода RSA необходимо ввести параметры следующим "
-"образом: '/i:n,e,x' - где:"
+"образом: '/i:n,e,w,x' - где:"
 "\n n - модуль, n = pq, где p и q - простые числа,"
 "\n e - случайное целое число, такое, что: 1 < e < (p - 1)(q - 1),"
+"\n w - длина слова,"
 "\n x - начальное значение из интервала [1, n - 1]\n";
 
 std::string bbs_help_message =
@@ -148,8 +149,7 @@ std::string bbs_help_message =
 "образом: '/i:x' - где:"
 "\n x - начальное значение, взаимно простое с 16637\n";
 
-std::string other_gen_help_message = "Данный генератор ещё не готов или ошибка "
-"в названии генератора!\n";
+std::string other_gen_help_message = "Ошибка в названии генератора!\n";
 
 std::string find_generate_method(std::string method)
 {
@@ -256,7 +256,7 @@ bool check_linear_params(int m, int a, int c)
     bool is_pass = false;
 
     // 1-е условие
-    if (std::__gcd(m, c) != 1)
+    if (std::gcd(m, c) != 1)
     {
         return false;
     }
@@ -636,7 +636,7 @@ int bbs_method(int n, std::vector<int> str_init, std::string f)
     int x = str_init[0];
     int prime_number = 16637;
 
-    if (std::__gcd(x, prime_number) != 1)
+    if (std::gcd(x, prime_number) != 1)
     {
         std::cout << std::endl;
         std::cout << "Генерация отменена - введенный x не взаимно простой с 16637! "
@@ -710,7 +710,7 @@ void parse_args(std::string &g, std::vector<int> &init, int &n, std::string &f,
                 }
             }
         }
-        if (g == "lfsr" or g == "nfsr")
+        if (g == "lfsr" || g == "nfsr")
         {
             str_init = split_to_str(pre_init, ",");
         }

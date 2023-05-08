@@ -1,0 +1,800 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYGZsh{}include \PYGZlt{}cmath\PYGZgt{}
+\PYGZsh{}include \PYGZlt{}iostream\PYGZgt{}
+\PYGZsh{}include \PYGZlt{}fstream\PYGZgt{}
+\PYGZsh{}include \PYGZlt{}vector\PYGZgt{}
+\PYGZsh{}include \PYGZlt{}cstdio\PYGZgt{}
+\PYGZsh{}include \PYGZlt{}functional\PYGZgt{}
+\PYGZsh{}include \PYGZlt{}map\PYGZgt{}
+\PYGZsh{}include \PYGZlt{}bitset\PYGZgt{}
+\PYGZsh{}include \PYGZlt{}boost/dynamic\PYGZus{}bitset.hpp\PYGZgt{}
+\PYGZsh{}include \PYGZlt{}numeric\PYGZgt{}
+
+
+const int BIT\PYGZus{}AMOUNT = 32;
+const int UPPER\PYGZus{}BOUND = 1024;
+
+
+void print\PYGZus{}vector(std::vector\PYGZlt{}int\PYGZgt{} some\PYGZus{}vec)
+\PYGZob{}
+    // вывести содержимое вектора \PYGZhy{} используется при тестировании
+    std::cout \PYGZlt{}\PYGZlt{} std::endl;
+    for (int i = 0; i \PYGZlt{} some\PYGZus{}vec.size(); i++)
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} some\PYGZus{}vec[i] \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+    \PYGZcb{}
+    std::cout \PYGZlt{}\PYGZlt{} std::endl;
+\PYGZcb{}
+
+
+std::vector\PYGZlt{}int\PYGZgt{} split\PYGZus{}to\PYGZus{}int(std::string str, std::string token)
+\PYGZob{}
+    // функция конвертации строки с числами в вектор с числами
+    std::vector\PYGZlt{}int\PYGZgt{} result;
+    while(str.size())
+    \PYGZob{}
+        int index = str.find(token);
+        if(index != std::string::npos)
+        \PYGZob{}
+            result.push\PYGZus{}back(std::stoi(str.substr(0,index)));
+            str = str.substr(index + token.size());
+            if (str.size() == 0) result.push\PYGZus{}back(std::stoi(str));
+        \PYGZcb{}
+        else
+        \PYGZob{}
+            result.push\PYGZus{}back(std::stoi(str));
+            str = \PYGZdq{}\PYGZdq{};
+        \PYGZcb{}
+    \PYGZcb{}
+    return result;
+\PYGZcb{}
+
+
+std::vector\PYGZlt{}std::string\PYGZgt{} split\PYGZus{}to\PYGZus{}str(std::string str, std::string token)
+\PYGZob{}
+    // функция конвертации строки с числами в вектор со строками
+    std::vector\PYGZlt{}std::string\PYGZgt{} result;
+    while(str.size())
+    \PYGZob{}
+        int index = str.find(token);
+        if(index != std::string::npos)
+        \PYGZob{}
+            result.push\PYGZus{}back(str.substr(0,index));
+            str = str.substr(index + token.size());
+            if (str.size() == 0) result.push\PYGZus{}back(str);
+        \PYGZcb{}
+        else
+        \PYGZob{}
+            result.push\PYGZus{}back(str);
+            str = \PYGZdq{}\PYGZdq{};
+        \PYGZcb{}
+    \PYGZcb{}
+    return result;
+\PYGZcb{}
+
+
+std::string help\PYGZus{}message =
+\PYGZdq{}Аргументы должны вводиться следующим образом:\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n /g:название\PYGZus{}генератора \PYGZhy{} указывает на метод генерации ПСЧ, принимает \PYGZdq{}
+\PYGZdq{}следующие значения: lc, add, 5p, lfsr, nfsr, mt, rc4, rsa, bbs\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n /i:инициализирущий\PYGZus{}вектор \PYGZhy{} записывать в формате \PYGZob{}x,y,z\PYGZcb{}, где x, y и z \PYGZhy{} \PYGZdq{}
+\PYGZdq{}параметры генератора.\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n /n:количество\PYGZus{}генерируемых\PYGZus{}чисел \PYGZhy{} целое число, определяющее количество \PYGZdq{}
+\PYGZdq{}генерируемых чисел. По умолчанию имеет значение 10000.\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n /f:имя\PYGZus{}файла \PYGZhy{} полное имя файла, в который будут записываться данные. \PYGZdq{}
+\PYGZdq{}По умолчанию имеет значение \PYGZsq{}rnd.dat\PYGZsq{}.\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n /h \PYGZhy{} информация о параметрах командной строки. При указании параметра /g: \PYGZdq{}
+\PYGZdq{}будет также появляется дополнительная информация о параметрах генератора.\PYGZbs{}n\PYGZdq{};
+
+std::string lc\PYGZus{}help\PYGZus{}message =
+\PYGZdq{}Для линейного конгруэнтного генератора необходимо ввести параметры следующим \PYGZdq{}
+\PYGZdq{}образом: \PYGZsq{}/i:m,a,c,last\PYGZus{}x\PYGZsq{} \PYGZhy{} где:\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n m \PYGZhy{} модуль,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n a \PYGZhy{} множитель,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n c \PYGZhy{} приращение (инкремент),\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n last\PYGZus{}x \PYGZhy{} начальное значение\PYGZbs{}n\PYGZdq{};
+
+std::string add\PYGZus{}help\PYGZus{}message =
+\PYGZdq{}Для аддитивного генератора необходимо ввести параметры следующим \PYGZdq{}
+\PYGZdq{}образом: \PYGZsq{}/i:m,k,j,x\PYGZus{}0,x\PYGZus{}1,...,x\PYGZus{}n\PYGZsq{} \PYGZhy{} где:\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n m \PYGZhy{} модуль,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n k \PYGZhy{} некоторый младший индекс (j \PYGZgt{} k \PYGZgt{}= 1),\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n j \PYGZhy{} некоторый старший индекс (j \PYGZgt{} k \PYGZgt{}= 1),\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n x\PYGZus{}0,x\PYGZus{}1,...,x\PYGZus{}n \PYGZhy{} вводимая последовательность\PYGZbs{}n\PYGZdq{};
+
+std::string lfsr\PYGZus{}help\PYGZus{}message =
+\PYGZdq{}Для генератора РСЛОС необходимо ввести параметры следующим \PYGZdq{}
+\PYGZdq{}образом: \PYGZsq{}/i:r,c\PYGZsq{} \PYGZhy{} где:\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n r \PYGZhy{} начальное состояние регистра (32 числа \PYGZsq{}0\PYGZsq{} или \PYGZsq{}1\PYGZsq{} без разделителей),\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n c \PYGZhy{} коэффициенты многочлена (32 числа \PYGZsq{}0\PYGZsq{} или \PYGZsq{}1\PYGZsq{} без разделителей)\PYGZbs{}n\PYGZdq{};
+
+std::string fp\PYGZus{}help\PYGZus{}message =
+\PYGZdq{}Для пятипараметрического генератора необходимо ввести параметры следующим \PYGZdq{}
+\PYGZdq{}образом: \PYGZsq{}/i:p,q\PYGZus{}1,q\PYGZus{}2,q\PYGZus{}3,w,x\PYGZsq{} \PYGZhy{} где:\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n p,q\PYGZus{}1,q\PYGZus{}2,q\PYGZus{}3 \PYGZhy{} коэффициенты пятипараметрического метода,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n w \PYGZhy{} размерность чисел в битах (целое положительное число)\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n x \PYGZhy{} начальное значение регистра (целое положительное число)\PYGZdq{};
+
+std::string nfsr\PYGZus{}help\PYGZus{}message =
+\PYGZdq{}Для нелинейной комбинации РСЛОС необходимо ввести параметры следующим \PYGZdq{}
+\PYGZdq{}образом: \PYGZsq{}/i:r1,r2,r3,w,c1,c2,c3\PYGZsq{} \PYGZhy{} где:\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n r1 \PYGZhy{} двоичное представление коэффициентов 1 (32 числа \PYGZsq{}0\PYGZsq{} или \PYGZsq{}1\PYGZsq{} без разделителей),\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n r2 \PYGZhy{} двоичное представление коэффициентов 2,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n r3 \PYGZhy{} двоичное представление коэффициентов 3,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n w \PYGZhy{} длина слова,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n c1 \PYGZhy{} десятичное представление начальных состояний регистров 1,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n c2 \PYGZhy{} десятичное представление начальных состояний регистров 2,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n c3 \PYGZhy{} десятичное представление начальных состояний регистров 3\PYGZbs{}n\PYGZdq{};
+
+std::string mt\PYGZus{}help\PYGZus{}message =
+\PYGZdq{}Для метода вихря Мерсенна необходимо ввести параметры следующим \PYGZdq{}
+\PYGZdq{}образом: \PYGZsq{}/i:m,x\PYGZsq{} \PYGZhy{} где:\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n m \PYGZhy{} модуль,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n x \PYGZhy{} начальное значение\PYGZbs{}n\PYGZdq{};
+
+std::string rc4\PYGZus{}help\PYGZus{}message =
+\PYGZdq{}Для метода RC4 необходимо ввести параметры следующим \PYGZdq{}
+\PYGZdq{}образом: \PYGZsq{}/i:x1,x2,...,x256\PYGZsq{} \PYGZhy{} где:\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n x1,... \PYGZhy{} первые 256 начальных значений\PYGZbs{}n\PYGZdq{};
+
+std::string rsa\PYGZus{}help\PYGZus{}message =
+\PYGZdq{}Для метода RSA необходимо ввести параметры следующим \PYGZdq{}
+\PYGZdq{}образом: \PYGZsq{}/i:n,e,w,x\PYGZsq{} \PYGZhy{} где:\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n n \PYGZhy{} модуль, n = pq, где p и q \PYGZhy{} простые числа,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n e \PYGZhy{} случайное целое число, такое, что: 1 \PYGZlt{} e \PYGZlt{} (p \PYGZhy{} 1)(q \PYGZhy{} 1),\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n w \PYGZhy{} длина слова,\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n x \PYGZhy{} начальное значение из интервала [1, n \PYGZhy{} 1]\PYGZbs{}n\PYGZdq{};
+
+std::string bbs\PYGZus{}help\PYGZus{}message =
+\PYGZdq{}Для метода BBS необходимо ввести параметры следующим \PYGZdq{}
+\PYGZdq{}образом: \PYGZsq{}/i:x\PYGZsq{} \PYGZhy{} где:\PYGZdq{}
+\PYGZdq{}\PYGZbs{}n x \PYGZhy{} начальное значение, взаимно простое с 16637\PYGZbs{}n\PYGZdq{};
+
+std::string other\PYGZus{}gen\PYGZus{}help\PYGZus{}message = \PYGZdq{}Ошибка в названии генератора!\PYGZbs{}n\PYGZdq{};
+
+std::string find\PYGZus{}generate\PYGZus{}method(std::string method)
+\PYGZob{}
+    // функция для нахождения названия метода в 
+    // списке допустимых названий методов
+    std::vector\PYGZlt{}std::string\PYGZgt{} method\PYGZus{}list = \PYGZob{}\PYGZdq{}lc\PYGZdq{}, \PYGZdq{}add\PYGZdq{}, \PYGZdq{}5p\PYGZdq{}, \PYGZdq{}lfsr\PYGZdq{}, \PYGZdq{}nfsr\PYGZdq{},
+                                            \PYGZdq{}rc4\PYGZdq{}, \PYGZdq{}rsa\PYGZdq{}, \PYGZdq{}bbs\PYGZdq{}, \PYGZdq{}mt\PYGZdq{}\PYGZcb{};
+    for (int i = 0; i \PYGZlt{} method\PYGZus{}list.size(); i++)
+    \PYGZob{}
+        if (method == method\PYGZus{}list[i])
+        \PYGZob{}
+            return method;
+        \PYGZcb{}
+    \PYGZcb{}
+    return \PYGZdq{}\PYGZdq{};
+\PYGZcb{}
+
+
+void show\PYGZus{}help\PYGZus{}message(std::string g=\PYGZdq{}\PYGZdq{}, bool h=false)
+\PYGZob{}
+    // функция печати в консоли вспомогательной информации
+    if (h || g == \PYGZdq{}\PYGZdq{})
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} help\PYGZus{}message \PYGZlt{}\PYGZlt{} std::endl;
+    \PYGZcb{}
+    if (g == \PYGZdq{}lc\PYGZdq{})
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl \PYGZlt{}\PYGZlt{} lc\PYGZus{}help\PYGZus{}message \PYGZlt{}\PYGZlt{} std::endl;        
+    \PYGZcb{}
+    else if (g == \PYGZdq{}add\PYGZdq{})
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl \PYGZlt{}\PYGZlt{} add\PYGZus{}help\PYGZus{}message \PYGZlt{}\PYGZlt{} std::endl;        
+    \PYGZcb{}
+    else if (g == \PYGZdq{}lfsr\PYGZdq{})
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl \PYGZlt{}\PYGZlt{} lfsr\PYGZus{}help\PYGZus{}message \PYGZlt{}\PYGZlt{} std::endl;        
+    \PYGZcb{}
+    else if (g == \PYGZdq{}5p\PYGZdq{})
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl \PYGZlt{}\PYGZlt{} fp\PYGZus{}help\PYGZus{}message \PYGZlt{}\PYGZlt{} std::endl;        
+    \PYGZcb{}
+    else if (g == \PYGZdq{}nfsr\PYGZdq{})
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl \PYGZlt{}\PYGZlt{} nfsr\PYGZus{}help\PYGZus{}message \PYGZlt{}\PYGZlt{} std::endl;        
+    \PYGZcb{}
+    else if (g == \PYGZdq{}mt\PYGZdq{})
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl \PYGZlt{}\PYGZlt{} mt\PYGZus{}help\PYGZus{}message \PYGZlt{}\PYGZlt{} std::endl;        
+    \PYGZcb{}
+    else if (g == \PYGZdq{}rc4\PYGZdq{})
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl \PYGZlt{}\PYGZlt{} rc4\PYGZus{}help\PYGZus{}message \PYGZlt{}\PYGZlt{} std::endl;        
+    \PYGZcb{}
+    else if (g == \PYGZdq{}rsa\PYGZdq{})
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl \PYGZlt{}\PYGZlt{} rsa\PYGZus{}help\PYGZus{}message \PYGZlt{}\PYGZlt{} std::endl;        
+    \PYGZcb{}
+    else if (g == \PYGZdq{}bbs\PYGZdq{})
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl \PYGZlt{}\PYGZlt{} bbs\PYGZus{}help\PYGZus{}message \PYGZlt{}\PYGZlt{} std::endl;        
+    \PYGZcb{}
+    else if (g != \PYGZdq{}\PYGZdq{})
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl \PYGZlt{}\PYGZlt{} other\PYGZus{}gen\PYGZus{}help\PYGZus{}message \PYGZlt{}\PYGZlt{} std::endl;
+    \PYGZcb{}
+\PYGZcb{}
+
+
+void show\PYGZus{}progress(int i, int n)
+\PYGZob{}
+    // функция для отображения в консоли статуса генерации последовательности
+    if (i \PYGZpc{} (static\PYGZus{}cast\PYGZlt{}int\PYGZgt{} (static\PYGZus{}cast\PYGZlt{}float\PYGZgt{} (n) / 10) + 1) == 0)
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} \PYGZdq{}\PYGZbs{}r\PYGZdq{} \PYGZlt{}\PYGZlt{} \PYGZdq{}Генерация выполнена на \PYGZdq{} \PYGZlt{}\PYGZlt{} (i * 100) / n 
+                  \PYGZlt{}\PYGZlt{} \PYGZdq{}\PYGZpc{}\PYGZdq{} \PYGZlt{}\PYGZlt{} std::flush;
+    \PYGZcb{}
+\PYGZcb{}
+
+
+std::vector\PYGZlt{}int\PYGZgt{} get\PYGZus{}prime\PYGZus{}factors(int n)
+\PYGZob{}
+    std::vector\PYGZlt{}int\PYGZgt{} divs;
+    while (n \PYGZpc{} 2 == 0)
+    \PYGZob{}
+        divs.push\PYGZus{}back(2);
+        n = n/2;
+    \PYGZcb{}
+    for (int i = 3; i \PYGZlt{}= sqrt(n); i = i + 2)
+    \PYGZob{}
+        while (n \PYGZpc{} i == 0)
+        \PYGZob{}
+            divs.push\PYGZus{}back(i);
+            n = n/i;
+        \PYGZcb{}
+    \PYGZcb{}
+    if (n \PYGZgt{} 2)
+        divs.push\PYGZus{}back(n);
+    
+    return divs;
+\PYGZcb{}
+
+bool check\PYGZus{}linear\PYGZus{}params(int m, int a, int c)
+\PYGZob{}
+    bool is\PYGZus{}pass = false;
+
+    // 1\PYGZhy{}е условие
+    if (std::gcd(m, c) != 1)
+    \PYGZob{}
+        return false;
+    \PYGZcb{}
+
+    // 2\PYGZhy{}е условие
+    std::vector\PYGZlt{}int\PYGZgt{} m\PYGZus{}divisors = get\PYGZus{}prime\PYGZus{}factors(m);
+    int a\PYGZus{}min\PYGZus{}one = a \PYGZhy{} 1;
+    for (int i = 0; i \PYGZlt{} m\PYGZus{}divisors.size(); i++)
+    \PYGZob{}
+        int p = m\PYGZus{}divisors[i];
+        if (a\PYGZus{}min\PYGZus{}one \PYGZpc{} p == 0)
+        \PYGZob{}
+            is\PYGZus{}pass = true;
+            break;
+        \PYGZcb{}
+    \PYGZcb{}
+
+    // 3\PYGZhy{}е условие
+    if (m \PYGZpc{} 4 == 0)
+    \PYGZob{}
+        if (a\PYGZus{}min\PYGZus{}one \PYGZpc{} 4 == 0 \PYGZam{}\PYGZam{} is\PYGZus{}pass) return true;
+        return false;
+    \PYGZcb{}
+    else
+    \PYGZob{}
+        if (is\PYGZus{}pass) return true;
+    \PYGZcb{}
+
+    return false;
+\PYGZcb{}
+
+
+int linear\PYGZus{}congruent\PYGZus{}method(int n, std::vector\PYGZlt{}int\PYGZgt{} params, std::string f)
+\PYGZob{}
+    // реализация линейного конгруэнтного метода
+    int m = params[0];
+    int a = params[1];
+    int c = params[2];
+    int last\PYGZus{}x = params[3];
+
+    if (!check\PYGZus{}linear\PYGZus{}params(m, a, c))
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl;
+        std::cout \PYGZlt{}\PYGZlt{} \PYGZdq{}Свойства теоремы не выполняются! \PYGZdq{};
+        std::cout \PYGZlt{}\PYGZlt{} std::endl;
+    \PYGZcb{}
+
+    std::ofstream output\PYGZus{}file;
+    output\PYGZus{}file.open(f);
+
+    output\PYGZus{}file \PYGZlt{}\PYGZlt{} last\PYGZus{}x \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+    for (int i = 0; i \PYGZlt{} n; i++)
+    \PYGZob{}
+        last\PYGZus{}x = ((a * last\PYGZus{}x + c) \PYGZpc{} m) \PYGZpc{} UPPER\PYGZus{}BOUND;
+        output\PYGZus{}file \PYGZlt{}\PYGZlt{} last\PYGZus{}x \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+        show\PYGZus{}progress(i, n);
+    \PYGZcb{}
+    output\PYGZus{}file.close();
+    return 0;
+\PYGZcb{}
+
+
+int additive\PYGZus{}method(int n, std::vector\PYGZlt{}int\PYGZgt{} params, std::string f)
+\PYGZob{}
+    // реализация аддитивного метода
+    int m = params[0];
+    params.erase(params.begin());
+    int k = params[1];
+    params.erase(params.begin());
+    int j = params[2];
+    params.erase(params.begin());
+    int seq\PYGZus{}size = params.size();
+
+    std::ofstream output\PYGZus{}file;
+    output\PYGZus{}file.open(f);
+    for (int i = 0; i \PYGZlt{} seq\PYGZus{}size; i++)
+    \PYGZob{}
+        output\PYGZus{}file \PYGZlt{}\PYGZlt{} params[i] \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+    \PYGZcb{}
+    
+    for (int i = 0; i \PYGZlt{} n; i++)
+    \PYGZob{}
+        int next\PYGZus{}x = (params[seq\PYGZus{}size \PYGZhy{} k] + params[seq\PYGZus{}size \PYGZhy{} j]) \PYGZpc{} m;
+        params.push\PYGZus{}back(next\PYGZus{}x \PYGZpc{} UPPER\PYGZus{}BOUND);
+        params.erase(params.begin());
+        output\PYGZus{}file \PYGZlt{}\PYGZlt{} next\PYGZus{}x \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+        show\PYGZus{}progress(i, n);
+    \PYGZcb{}
+    output\PYGZus{}file.close();
+    return 0;
+\PYGZcb{}
+
+
+std::bitset\PYGZlt{}BIT\PYGZus{}AMOUNT\PYGZgt{} lfsr\PYGZus{}iteration(std::bitset\PYGZlt{}BIT\PYGZus{}AMOUNT\PYGZgt{} init\PYGZus{}register,
+                                       std::bitset\PYGZlt{}BIT\PYGZus{}AMOUNT\PYGZgt{} poly\PYGZus{}coeffs)
+\PYGZob{}
+    bool current\PYGZus{}bit = 0;
+    for (int j = 0; j \PYGZlt{} BIT\PYGZus{}AMOUNT; j++)
+    \PYGZob{}
+        current\PYGZus{}bit \PYGZca{}= init\PYGZus{}register[j] * poly\PYGZus{}coeffs[j];
+    \PYGZcb{}
+    init\PYGZus{}register \PYGZgt{}\PYGZgt{}= 1;
+    init\PYGZus{}register[BIT\PYGZus{}AMOUNT \PYGZhy{} 1] = current\PYGZus{}bit;
+    return init\PYGZus{}register;
+\PYGZcb{}
+
+
+int lfsr\PYGZus{}method(int n, std::vector\PYGZlt{}std::string\PYGZgt{} str\PYGZus{}init, std::string f)
+\PYGZob{}
+    // реализация РСЛОС метода
+    std::bitset\PYGZlt{}BIT\PYGZus{}AMOUNT\PYGZgt{} poly\PYGZus{}coeffs(str\PYGZus{}init[0]);
+    std::bitset\PYGZlt{}BIT\PYGZus{}AMOUNT\PYGZgt{} init\PYGZus{}register(str\PYGZus{}init[1]);
+
+    std::ofstream output\PYGZus{}file;
+    output\PYGZus{}file.open(f);
+    for (int i = 0; i \PYGZlt{} n; i++)
+    \PYGZob{}
+        output\PYGZus{}file \PYGZlt{}\PYGZlt{} init\PYGZus{}register.to\PYGZus{}ulong() \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+        init\PYGZus{}register = lfsr\PYGZus{}iteration(init\PYGZus{}register, poly\PYGZus{}coeffs);
+        show\PYGZus{}progress(i, n);
+    \PYGZcb{}
+    output\PYGZus{}file.close();
+    return 0;
+\PYGZcb{}
+
+
+int five\PYGZus{}param\PYGZus{}method(int n, std::vector\PYGZlt{}int\PYGZgt{} str\PYGZus{}init, std::string f)
+\PYGZob{}
+    // реализация пятипараметрического метода
+    int p = str\PYGZus{}init[0];
+    int q\PYGZus{}1 = str\PYGZus{}init[1];
+    int q\PYGZus{}2 = str\PYGZus{}init[2];
+    int q\PYGZus{}3 = str\PYGZus{}init[3];
+    int w = str\PYGZus{}init[4];
+    int init\PYGZus{}x = str\PYGZus{}init[5];
+    
+    boost::dynamic\PYGZus{}bitset\PYGZlt{}\PYGZgt{} init\PYGZus{}register(w, init\PYGZus{}x);
+
+    std::ofstream output\PYGZus{}file;
+    output\PYGZus{}file.open(f);
+    for (int i = 0; i \PYGZlt{} n; i++)
+    \PYGZob{}
+        output\PYGZus{}file \PYGZlt{}\PYGZlt{} init\PYGZus{}register.to\PYGZus{}ulong() \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+
+        init\PYGZus{}register[p] = init\PYGZus{}register[0]
+                           \PYGZca{} init\PYGZus{}register[q\PYGZus{}3]
+                           \PYGZca{} init\PYGZus{}register[q\PYGZus{}2]
+                           \PYGZca{} init\PYGZus{}register[q\PYGZus{}1];
+        init\PYGZus{}register \PYGZgt{}\PYGZgt{}= 1;
+        init\PYGZus{}register[w \PYGZhy{} 1] = 0;
+
+        show\PYGZus{}progress(i, n);
+    \PYGZcb{}
+    output\PYGZus{}file.close();
+    return 0;
+\PYGZcb{}
+
+
+template \PYGZlt{}typename Bitset\PYGZgt{}
+void set\PYGZus{}in\PYGZus{}range(Bitset\PYGZam{} b, unsigned value, int from, int to)
+\PYGZob{}
+  for (int i = from; i \PYGZlt{} to; ++i, value \PYGZgt{}\PYGZgt{}= 1)
+    b[i] = (value \PYGZam{} 1);
+\PYGZcb{}
+
+int nfsr\PYGZus{}method(int n, std::vector\PYGZlt{}std::string\PYGZgt{} str\PYGZus{}init, std::string f)
+\PYGZob{}
+    // реализация нелинейной комбинации РСЛОС
+    std::bitset\PYGZlt{}BIT\PYGZus{}AMOUNT\PYGZgt{} pc\PYGZus{}1(str\PYGZus{}init[0]);
+    std::bitset\PYGZlt{}BIT\PYGZus{}AMOUNT\PYGZgt{} pc\PYGZus{}2(str\PYGZus{}init[1]);
+    std::bitset\PYGZlt{}BIT\PYGZus{}AMOUNT\PYGZgt{} pc\PYGZus{}3(str\PYGZus{}init[2]);
+
+    int w = stoi(str\PYGZus{}init[3]);
+    boost::dynamic\PYGZus{}bitset\PYGZlt{}\PYGZgt{} cur\PYGZus{}reg(w, 0);
+
+    std::bitset\PYGZlt{}BIT\PYGZus{}AMOUNT\PYGZgt{} ir\PYGZus{}1(stoi(str\PYGZus{}init[4]));
+    std::bitset\PYGZlt{}BIT\PYGZus{}AMOUNT\PYGZgt{} ir\PYGZus{}2(stoi(str\PYGZus{}init[5]));
+    std::bitset\PYGZlt{}BIT\PYGZus{}AMOUNT\PYGZgt{} ir\PYGZus{}3(stoi(str\PYGZus{}init[6]));
+
+    std::ofstream output\PYGZus{}file;
+    output\PYGZus{}file.open(f);
+    for (int i = 0; i \PYGZlt{} n; i++)
+    \PYGZob{}
+        set\PYGZus{}in\PYGZus{}range(cur\PYGZus{}reg,
+                     ((ir\PYGZus{}1 \PYGZam{} ir\PYGZus{}2) \PYGZca{} (ir\PYGZus{}2 \PYGZam{} ir\PYGZus{}3) \PYGZca{} ir\PYGZus{}3).to\PYGZus{}ulong(),
+                     0,
+                     w \PYGZhy{} 1);
+        output\PYGZus{}file \PYGZlt{}\PYGZlt{} cur\PYGZus{}reg.to\PYGZus{}ulong() \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+
+        ir\PYGZus{}1 = lfsr\PYGZus{}iteration(ir\PYGZus{}1, pc\PYGZus{}1);
+        ir\PYGZus{}2 = lfsr\PYGZus{}iteration(ir\PYGZus{}2, pc\PYGZus{}2);
+        ir\PYGZus{}3 = lfsr\PYGZus{}iteration(ir\PYGZus{}3, pc\PYGZus{}3);
+
+        show\PYGZus{}progress(i, n);
+    \PYGZcb{}
+    output\PYGZus{}file.close();
+    return 0;
+\PYGZcb{}
+
+
+template\PYGZlt{}typename T\PYGZgt{}
+constexpr T low\PYGZus{}bits(T v, int bit\PYGZus{}mnt) \PYGZob{}
+    return v \PYGZam{} ((1 \PYGZlt{}\PYGZlt{} bit\PYGZus{}mnt) \PYGZhy{} 1);
+\PYGZcb{}
+
+void twist(int* mt, const int p,
+           const int upper\PYGZus{}mask, const int lower\PYGZus{}mask,
+           const uint32\PYGZus{}t a, const int m, int \PYGZam{}index)
+\PYGZob{}
+    for (int i = 0; i \PYGZlt{} p; i++)
+    \PYGZob{}
+        int x = (mt[i] \PYGZam{} upper\PYGZus{}mask) + (mt[(i + 1) \PYGZpc{} p] \PYGZam{} lower\PYGZus{}mask);
+        int xA = x \PYGZgt{}\PYGZgt{} 1;
+        if (x \PYGZpc{} 2 != 0)
+        \PYGZob{}
+            xA = xA \PYGZca{} a;
+        \PYGZcb{}
+        mt[i] = mt[(i + m) \PYGZpc{} p] \PYGZca{} xA;
+    \PYGZcb{}
+    index = 0;
+\PYGZcb{}
+
+
+int mt\PYGZus{}method(int n, std::vector\PYGZlt{}int\PYGZgt{} str\PYGZus{}init, std::string f)
+\PYGZob{}
+    // Метод вихря Мерсенна
+    int mod = str\PYGZus{}init[0];
+    int x = str\PYGZus{}init[1];
+
+    // выставляю константные параметры вихря (согласно англ. википедии)
+    const unsigned int w = BIT\PYGZus{}AMOUNT; // количество бит (можно переделать под 64)
+    const unsigned int p = 624;
+    const unsigned int m = 397;
+    const unsigned int r = 31;
+    const uint32\PYGZus{}t a = 0x9908B0DFUL;
+    const unsigned int u = 11;
+    const uint32\PYGZus{}t d = 0xFFFFFFFFUL;
+    const unsigned int s = 7;
+    const uint32\PYGZus{}t b = 0x9D2C5680UL;
+    const unsigned int t = 15;
+    const uint32\PYGZus{}t c = 0xEFC60000UL;
+    const unsigned int l = 18;
+    const uint32\PYGZus{}t f\PYGZus{}par = 1812433253;
+
+    const int lower\PYGZus{}mask = (1 \PYGZlt{}\PYGZlt{} r) \PYGZhy{} 1;
+    const int upper\PYGZus{}mask = low\PYGZus{}bits(\PYGZti{}lower\PYGZus{}mask, w);
+
+    int mt[p];
+    int index = p + 1;
+
+
+    // Инициализация генератора
+    index = p;
+    mt[0] = x;
+    for (int i = 0; i \PYGZlt{} p; i++)
+    \PYGZob{}
+        mt[i] = low\PYGZus{}bits((f\PYGZus{}par * mt[i \PYGZhy{} 1] \PYGZca{} (mt[i \PYGZhy{} 1] \PYGZgt{}\PYGZgt{} (w \PYGZhy{} 2))) + i, 
+                         w \PYGZhy{} 1);
+    \PYGZcb{}
+
+    std::ofstream output\PYGZus{}file;
+    output\PYGZus{}file.open(f);
+    output\PYGZus{}file \PYGZlt{}\PYGZlt{} x \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+    for (int i = 0; i \PYGZlt{} n; i++)
+    \PYGZob{}
+        if (index \PYGZgt{}= p)
+        \PYGZob{}
+            twist(mt, p, upper\PYGZus{}mask, lower\PYGZus{}mask, a, m, index);
+        \PYGZcb{}
+
+        int y = mt[index];
+        y \PYGZca{}= ((y \PYGZgt{}\PYGZgt{} u) \PYGZam{} d);
+        y \PYGZca{}= ((y \PYGZlt{}\PYGZlt{} s) \PYGZam{} b);
+        y \PYGZca{}= ((y \PYGZgt{}\PYGZgt{} t) \PYGZam{} c);
+        y \PYGZca{}= y \PYGZgt{}\PYGZgt{} l;
+
+        index += 1;
+
+        output\PYGZus{}file \PYGZlt{}\PYGZlt{} (y \PYGZpc{} mod) \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+        show\PYGZus{}progress(i, n);
+    \PYGZcb{}
+    output\PYGZus{}file.close();
+    return 0;
+\PYGZcb{}
+
+
+int rc4\PYGZus{}method(int n, std::vector\PYGZlt{}int\PYGZgt{} first\PYGZus{}xs, std::string f)
+\PYGZob{}
+    // Метод RC4
+    std::vector\PYGZlt{}int\PYGZgt{} s\PYGZus{}block;
+    for (int i = 0; i \PYGZlt{} 256; i++)
+    \PYGZob{}
+        s\PYGZus{}block.push\PYGZus{}back(i);
+    \PYGZcb{}
+    int j = 0;
+    for (int i = 0; i \PYGZlt{} 256; i++)
+    \PYGZob{}
+        j = (j + s\PYGZus{}block[i] + first\PYGZus{}xs[i]) \PYGZpc{} 256;
+        std::swap(s\PYGZus{}block[i], s\PYGZus{}block[j]);
+    \PYGZcb{}
+
+    std::ofstream output\PYGZus{}file;
+    output\PYGZus{}file.open(f);
+    for (int i = 0; i \PYGZlt{} first\PYGZus{}xs.size(); i++)
+    \PYGZob{}
+        output\PYGZus{}file \PYGZlt{}\PYGZlt{} first\PYGZus{}xs[i] \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+    \PYGZcb{}
+
+    int i = 0;
+    j = 0;
+    for (int l = 0; l \PYGZlt{} n; l++)
+    \PYGZob{}
+        i = (i + 1) \PYGZpc{} 256;
+        j = (j + s\PYGZus{}block[i]) \PYGZpc{} 256;
+        std::swap(s\PYGZus{}block[i], s\PYGZus{}block[j]);
+        int t = (s\PYGZus{}block[i] + s\PYGZus{}block[j]) \PYGZpc{} 256;
+        int k = s\PYGZus{}block[t];
+
+        output\PYGZus{}file \PYGZlt{}\PYGZlt{} k \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+        show\PYGZus{}progress(i, n);
+    \PYGZcb{}
+    
+    output\PYGZus{}file.close();
+    return 0;
+\PYGZcb{}
+
+
+int module\PYGZus{}power(int x, int y, int mod)
+\PYGZob{}
+    // возведение в степень по модулю
+    if (y == 0)
+    \PYGZob{}
+        return 1;
+    \PYGZcb{}
+    int temp = module\PYGZus{}power(x, y / 2, mod) \PYGZpc{} mod;
+    temp = (temp * temp) \PYGZpc{} mod;
+    if (y \PYGZpc{} 2 == 1)
+    \PYGZob{}
+        temp = (temp * x) \PYGZpc{} mod;
+    \PYGZcb{}
+    return temp;
+\PYGZcb{}
+
+
+int rsa\PYGZus{}method(int n, std::vector\PYGZlt{}int\PYGZgt{} str\PYGZus{}init, std::string f)
+\PYGZob{}
+    // Метод RSA
+    int mod = str\PYGZus{}init[0];
+    int e = str\PYGZus{}init[1];
+    int l = str\PYGZus{}init[2];
+    int x = str\PYGZus{}init[3];
+
+    std::ofstream output\PYGZus{}file;
+    output\PYGZus{}file.open(f);
+
+    output\PYGZus{}file \PYGZlt{}\PYGZlt{} x \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+    for (int i = 0; i \PYGZlt{} n; i++)
+    \PYGZob{}
+        std::string z\PYGZus{}seq = \PYGZdq{}\PYGZdq{};
+        for (int j = 0; j \PYGZlt{} l; j++)
+        \PYGZob{}
+            x = module\PYGZus{}power(x, e, mod);
+            int cur\PYGZus{}z = x \PYGZpc{} 2;
+            z\PYGZus{}seq.append(std::to\PYGZus{}string(cur\PYGZus{}z));
+        \PYGZcb{}
+        output\PYGZus{}file \PYGZlt{}\PYGZlt{} std::stoi(z\PYGZus{}seq, nullptr, 2) \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+        show\PYGZus{}progress(i, n);
+    \PYGZcb{}    
+    output\PYGZus{}file.close();
+    return 0;
+\PYGZcb{}
+
+
+int bbs\PYGZus{}method(int n, std::vector\PYGZlt{}int\PYGZgt{} str\PYGZus{}init, std::string f)
+\PYGZob{}
+    // Метод Блюма\PYGZhy{}Блюма\PYGZhy{}Шуба
+    int x = str\PYGZus{}init[0];
+    int prime\PYGZus{}number = 16637;
+
+    if (std::gcd(x, prime\PYGZus{}number) != 1)
+    \PYGZob{}
+        std::cout \PYGZlt{}\PYGZlt{} std::endl;
+        std::cout \PYGZlt{}\PYGZlt{} \PYGZdq{}Генерация отменена \PYGZhy{} введенный x не взаимно простой с 16637! \PYGZdq{}
+                     \PYGZdq{}Измените входные параметры.\PYGZdq{};
+        return 1;
+    \PYGZcb{}
+
+    int l = 10;
+    std::ofstream output\PYGZus{}file;
+    output\PYGZus{}file.open(f);
+    output\PYGZus{}file \PYGZlt{}\PYGZlt{} x \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+    for (int i = 0; i \PYGZlt{} n; i++)
+    \PYGZob{}
+        std::string z\PYGZus{}seq = \PYGZdq{}\PYGZdq{};
+        for (int j = 0; j \PYGZlt{} l; j++)
+        \PYGZob{}
+            x = module\PYGZus{}power(x, 2, prime\PYGZus{}number);
+            int cur\PYGZus{}z = x \PYGZpc{} 2;
+            z\PYGZus{}seq.append(std::to\PYGZus{}string(cur\PYGZus{}z));
+        \PYGZcb{}
+        output\PYGZus{}file \PYGZlt{}\PYGZlt{} std::stoi(z\PYGZus{}seq, nullptr, 2) \PYGZpc{} UPPER\PYGZus{}BOUND \PYGZlt{}\PYGZlt{} \PYGZsq{},\PYGZsq{};
+        show\PYGZus{}progress(i, n);
+    \PYGZcb{}    
+    output\PYGZus{}file.close();
+    return 0;
+\PYGZcb{}
+
+
+void parse\PYGZus{}args(std::string \PYGZam{}g, std::vector\PYGZlt{}int\PYGZgt{} \PYGZam{}init, int \PYGZam{}n, std::string \PYGZam{}f, 
+                bool \PYGZam{}h, std::vector\PYGZlt{}std::string\PYGZgt{} \PYGZam{}str\PYGZus{}init, int arg\PYGZus{}amount,
+                char** args)
+\PYGZob{}
+    // функция для парсинга параметров
+    std::vector\PYGZlt{}std::pair\PYGZlt{}std::string, int\PYGZgt{}\PYGZgt{} default\PYGZus{}args = \PYGZob{}\PYGZob{}\PYGZdq{}/g:\PYGZdq{}, 0\PYGZcb{},
+        \PYGZob{}\PYGZdq{}/i:\PYGZdq{}, 1\PYGZcb{}, \PYGZob{}\PYGZdq{}/n:\PYGZdq{}, 2\PYGZcb{}, \PYGZob{}\PYGZdq{}/f:\PYGZdq{}, 3\PYGZcb{}, \PYGZob{}\PYGZdq{}/h\PYGZdq{}, 4\PYGZcb{}\PYGZcb{};
+    int default\PYGZus{}args\PYGZus{}amount = default\PYGZus{}args.size();
+    f = \PYGZdq{}rnd.dat\PYGZdq{};
+    n = 10000;
+    std::string pre\PYGZus{}init;
+    try
+    \PYGZob{}
+        for (int i = 1; i \PYGZlt{} arg\PYGZus{}amount; ++i)
+        \PYGZob{}
+            std::string cur\PYGZus{}arg = args[i];
+            for (int j = 0; j \PYGZlt{} default\PYGZus{}args\PYGZus{}amount; j++)
+            \PYGZob{}
+                if (cur\PYGZus{}arg.find(default\PYGZus{}args[j].first) != std::string::npos)
+                \PYGZob{}
+                    switch (default\PYGZus{}args[j].second)
+                    \PYGZob{}
+                    case 0:
+                        cur\PYGZus{}arg.erase(0, 3);
+                        g = cur\PYGZus{}arg;
+                        break;
+                    case 1:
+                        cur\PYGZus{}arg.erase(0, 3);
+                        pre\PYGZus{}init = cur\PYGZus{}arg;
+                        break;
+                    case 2:
+                        cur\PYGZus{}arg.erase(0, 3);
+                        n = std::stoi(cur\PYGZus{}arg);
+                        break;
+                    case 3:
+                        cur\PYGZus{}arg.erase(0, 3);
+                        f = cur\PYGZus{}arg;
+                        break;
+                    case 4:
+                        h = true;
+                        break;
+                    \PYGZcb{}
+                \PYGZcb{}
+            \PYGZcb{}
+        \PYGZcb{}
+        if (g == \PYGZdq{}lfsr\PYGZdq{} || g == \PYGZdq{}nfsr\PYGZdq{})
+        \PYGZob{}
+            str\PYGZus{}init = split\PYGZus{}to\PYGZus{}str(pre\PYGZus{}init, \PYGZdq{},\PYGZdq{});
+        \PYGZcb{}
+        else
+        \PYGZob{}
+            init = split\PYGZus{}to\PYGZus{}int(pre\PYGZus{}init, \PYGZdq{},\PYGZdq{});
+        \PYGZcb{}
+    \PYGZcb{}
+    catch(const std::exception\PYGZam{} e)
+    \PYGZob{}
+        show\PYGZus{}help\PYGZus{}message(g, h);
+    \PYGZcb{}
+\PYGZcb{}
+
+
+int main(int argc, char** argv)
+\PYGZob{}
+    setlocale(LC\PYGZus{}ALL, \PYGZdq{}Russian\PYGZdq{});
+    std::string g;
+    std::vector\PYGZlt{}int\PYGZgt{} init;
+    std::vector\PYGZlt{}std::string\PYGZgt{} str\PYGZus{}init;
+    int n;
+    std::string f;
+    bool h = false;
+
+    parse\PYGZus{}args(g, init, n, f, h, str\PYGZus{}init, argc, argv);
+    
+    g = find\PYGZus{}generate\PYGZus{}method(g);
+
+    if (g != \PYGZdq{}\PYGZdq{} \PYGZam{}\PYGZam{} (!init.empty() || !str\PYGZus{}init.empty()))
+    \PYGZob{}
+        int generation\PYGZus{}status = 0;
+        if (h)
+        \PYGZob{}
+            show\PYGZus{}help\PYGZus{}message(g, h);
+        \PYGZcb{}
+        std::cout \PYGZlt{}\PYGZlt{} \PYGZdq{}Генерация выполнена на \PYGZdq{};
+        if (g == \PYGZdq{}lc\PYGZdq{})
+        \PYGZob{}
+            generation\PYGZus{}status = linear\PYGZus{}congruent\PYGZus{}method(n, init, f);
+        \PYGZcb{}
+        else if (g == \PYGZdq{}add\PYGZdq{})
+        \PYGZob{}
+            generation\PYGZus{}status = additive\PYGZus{}method(n, init, f);
+        \PYGZcb{}
+        else if (g == \PYGZdq{}lfsr\PYGZdq{})
+        \PYGZob{}
+            generation\PYGZus{}status = lfsr\PYGZus{}method(n, str\PYGZus{}init, f);
+        \PYGZcb{}
+        else if (g == \PYGZdq{}5p\PYGZdq{})
+        \PYGZob{}
+            generation\PYGZus{}status = five\PYGZus{}param\PYGZus{}method(n, init, f);
+        \PYGZcb{}
+        else if (g == \PYGZdq{}nfsr\PYGZdq{})
+        \PYGZob{}
+            generation\PYGZus{}status = nfsr\PYGZus{}method(n, str\PYGZus{}init, f);
+        \PYGZcb{}
+        else if (g == \PYGZdq{}mt\PYGZdq{})
+        \PYGZob{}
+            generation\PYGZus{}status = mt\PYGZus{}method(n, init, f);
+        \PYGZcb{}
+        else if (g == \PYGZdq{}rc4\PYGZdq{})
+        \PYGZob{}
+            generation\PYGZus{}status = rc4\PYGZus{}method(n, init, f);
+        \PYGZcb{}
+        else if (g == \PYGZdq{}rsa\PYGZdq{})
+        \PYGZob{}
+            generation\PYGZus{}status = rsa\PYGZus{}method(n, init, f);
+        \PYGZcb{}
+        else if (g == \PYGZdq{}bbs\PYGZdq{})
+        \PYGZob{}
+            generation\PYGZus{}status = bbs\PYGZus{}method(n, init, f);
+        \PYGZcb{}
+        if (!generation\PYGZus{}status)
+        \PYGZob{}
+            std::cout \PYGZlt{}\PYGZlt{} \PYGZdq{}\PYGZbs{}r\PYGZdq{} \PYGZlt{}\PYGZlt{} \PYGZdq{}Генерация выполнена на \PYGZdq{} \PYGZlt{}\PYGZlt{} 100 \PYGZlt{}\PYGZlt{} \PYGZdq{}\PYGZpc{}\PYGZdq{} \PYGZlt{}\PYGZlt{} std::flush 
+                \PYGZlt{}\PYGZlt{} std::endl;
+            std::cout \PYGZlt{}\PYGZlt{} \PYGZdq{}Результат работы генератора сохранен в \PYGZdq{} + f + \PYGZdq{}\PYGZbs{}n\PYGZdq{};
+        \PYGZcb{}        
+    \PYGZcb{}
+    else
+    \PYGZob{}
+        show\PYGZus{}help\PYGZus{}message(g, h);
+    \PYGZcb{}
+\PYGZcb{}
+\end{Verbatim}

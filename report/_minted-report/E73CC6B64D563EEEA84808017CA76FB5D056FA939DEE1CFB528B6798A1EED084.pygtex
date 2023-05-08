@@ -1,0 +1,15 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+y = binominal(x, a, b, m):
+  u = U(x)
+  s = 0
+  k = 0
+  Начало цикла:
+    s = s + C(k, b) + a\PYGZca{}k * (1 \PYGZhy{} a)\PYGZca{}(b \PYGZhy{} k)
+    if s \PYGZgt{} u:
+      y = k
+      Завершить
+    if k \PYGZlt{} b \PYGZhy{} 1:
+      k = k + 1
+      Перейти к новой итерации цикла
+    y = b
+\end{Verbatim}
